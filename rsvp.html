@@ -1973,5 +1973,75 @@
             URL.revokeObjectURL(url);
         }
     </script>
+    <script>
+
+        window.supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+        
+        document.addEventListener("DOMContentLoaded", async () => {
+          const params = new URLSearchParams(window.location.search);
+          const token = params.get("token");
+        
+          if (!token) {
+            showError("Invalid invitation link.");
+            return;
+          }
+        
+          console.log("RSVP token:", token);
+        
+          const { data, error } = await supabaseClient
+            .from("invitations")
+            .select(`
+              *,
+              events (
+                id,
+                title,
+                description,
+                event_date,
+                location
+              )
+            `)
+            .eq("token", token)
+            .single();
+        
+          if (error || !data) {
+            console.error(error);
+            showError("Invitation not found or expired.");
+            return;
+          }
+        
+          populateInvitation(data);
+        });
+        
+        function showError(message) {
+          document.body.innerHTML = `
+            <div class="evite-error">
+              <div class="evite-error-icon">💔</div>
+              <h2>Invitation Not Found</h2>
+              <p>${message}</p>
+            </div>
+          `;
+        }
+        
+        function populateInvitation(invite) {
+          console.log("Loaded invite:", invite);
+        
+          // Example bindings – match these selectors to your actual HTML
+          document.querySelector(".evite-title").textContent = invite.events.title;
+          document.querySelector(".evite-description-text").textContent =
+            invite.events.description || "";
+        
+          document.querySelector(".evite-details").innerHTML = `
+            <div class="evite-details-line">
+              <span class="evite-details-label">When:</span>
+              ${new Date(invite.events.event_date).toLocaleString()}
+            </div>
+            <div class="evite-details-line">
+              <span class="evite-details-label">Where:</span>
+              ${invite.events.location || "TBA"}
+            </div>
+          `;
+        }
+        </script>
+        
 </body>
 </html>
