@@ -1719,3 +1719,115 @@ p {
         grid-template-columns: 1fr;
     }
 }
+
+/* ===========================================
+   EMAIL SENDING STYLES
+   =========================================== */
+
+/* Email progress bar */
+.email-progress-bar {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.progress-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+#email-progress-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    min-width: 200px;
+}
+
+.progress-bar-container {
+    flex: 1;
+    min-width: 150px;
+    height: 8px;
+    background: var(--background);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary), var(--secondary));
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+#email-progress-count {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Sent status in table */
+.sent-status {
+    white-space: nowrap;
+}
+
+.sent-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #e8f5e9;
+    color: #2e7d32;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.not-sent {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* Action buttons in table */
+.actions-cell {
+    white-space: nowrap;
+}
+
+.actions-cell .btn {
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    margin-left: 4px;
+}
+
+.actions-cell .btn:first-child {
+    margin-left: 0;
+}
+
+/* Bulk actions styling */
+.bulk-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.bulk-actions .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+}
+
+@media (max-width: 600px) {
+    .bulk-actions {
+        flex-direction: column;
+    }
+
+    .bulk-actions .btn {
+        width: 100%;
+    }
+
+    .actions-cell .btn {
+        padding: 6px 10px;
+        margin-bottom: 4px;
+    }
+}

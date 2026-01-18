@@ -102,8 +102,20 @@
 
                 <!-- Bulk Actions -->
                 <div class="bulk-actions">
-                    <button id="copy-phones-btn" class="btn btn-outline btn-sm">Copy All Phone Numbers</button>
+                    <button id="send-all-emails-btn" class="btn btn-primary btn-sm">Send All Invitations</button>
+                    <button id="copy-phones-btn" class="btn btn-outline btn-sm">Copy All Phones</button>
                     <button id="copy-emails-btn" class="btn btn-outline btn-sm">Copy All Emails</button>
+                </div>
+
+                <!-- Email Progress Modal -->
+                <div id="email-progress" class="email-progress-bar" style="display: none;">
+                    <div class="progress-content">
+                        <span id="email-progress-text">Sending emails...</span>
+                        <div class="progress-bar-container">
+                            <div id="email-progress-fill" class="progress-bar-fill"></div>
+                        </div>
+                        <span id="email-progress-count">0 / 0</span>
+                    </div>
                 </div>
 
                 <!-- Invitations List -->
@@ -121,6 +133,7 @@
                                         <th>Email</th>
                                         <th>Phone</th>
                                         <th>Status</th>
+                                        <th>Sent</th>
                                         <th>Guests</th>
                                         <th>Actions</th>
                                     </tr>
@@ -154,6 +167,7 @@
     <script src="js/auth.js"></script>
     <script src="js/events.js"></script>
     <script src="js/invitations.js"></script>
+    <script src="js/email.js"></script>
     <script src="js/main.js"></script>
     <script>
         let eventId = null;
@@ -239,6 +253,8 @@
             listEl.innerHTML = invitations.map(inv => {
                 const status = Invitations.getStatusDisplay(inv.status);
                 const rsvpLink = Invitations.getRSVPLink(inv.token);
+                const sentStatus = inv.sent_at ? formatSentDate(inv.sent_at) : '<span class="not-sent">Not sent</span>';
+                const canSendEmail = inv.email && !inv.sent_at;
 
                 return `
                     <tr>
@@ -246,10 +262,19 @@
                         <td>${Utils.escapeHtml(inv.email || '-')}</td>
                         <td>${Invitations.formatPhone(inv.phone)}</td>
                         <td><span class="status-badge ${status.class}">${status.label}</span></td>
+                        <td class="sent-status">${sentStatus}</td>
                         <td>${inv.status === 'accepted' ? inv.guest_count : '-'}</td>
                         <td class="actions-cell">
+                            ${inv.email ? `
+                            <button class="btn btn-sm btn-outline send-email-btn" data-id="${inv.id}" title="Send Email">
+                                ✉️
+                            </button>
+                            ` : ''}
                             <button class="btn btn-sm btn-outline copy-link-btn" data-link="${rsvpLink}" title="Copy RSVP Link">
-                                Copy Link
+                                🔗
+                            </button>
+                            <button class="btn btn-sm btn-outline regenerate-btn" data-id="${inv.id}" title="Regenerate Link">
+                                🔄
                             </button>
                             <button class="btn btn-sm btn-danger delete-btn" data-id="${inv.id}" title="Remove">
                                 ✕
@@ -267,12 +292,124 @@
                 });
             });
 
+            listEl.querySelectorAll('.send-email-btn').forEach(btn => {
+                btn.addEventListener('click', () => sendSingleEmail(btn.dataset.id));
+            });
+
+            listEl.querySelectorAll('.regenerate-btn').forEach(btn => {
+                btn.addEventListener('click', () => regenerateLink(btn.dataset.id));
+            });
+
             listEl.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     deleteInvitationId = btn.dataset.id;
                     document.getElementById('delete-modal').style.display = 'flex';
                 });
             });
+        }
+
+        // Format sent date
+        function formatSentDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 1) return '<span class="sent-badge">Just now</span>';
+            if (diffMins < 60) return `<span class="sent-badge">${diffMins}m ago</span>`;
+            if (diffHours < 24) return `<span class="sent-badge">${diffHours}h ago</span>`;
+            if (diffDays < 7) return `<span class="sent-badge">${diffDays}d ago</span>`;
+
+            return `<span class="sent-badge">${date.toLocaleDateString()}</span>`;
+        }
+
+        // Regenerate invitation link
+        async function regenerateLink(invitationId) {
+            if (!confirm('Generate a new link? The old link will stop working.')) {
+                return;
+            }
+
+            const btn = document.querySelector(`.regenerate-btn[data-id="${invitationId}"]`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳';
+            btn.disabled = true;
+
+            const result = await Invitations.regenerateToken(invitationId);
+
+            if (result.success) {
+                showToast('New link generated!');
+                await loadInvitations();
+            } else {
+                showToast('Failed: ' + (result.error || 'Unknown error'));
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Send single email
+        async function sendSingleEmail(invitationId) {
+            const invitation = invitations.find(inv => inv.id === invitationId);
+            if (!invitation || !invitation.email) {
+                showToast('No email address for this guest');
+                return;
+            }
+
+            const btn = document.querySelector(`.send-email-btn[data-id="${invitationId}"]`);
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '⏳';
+            btn.disabled = true;
+
+            const result = await Email.sendInvitation(invitation, currentEvent);
+
+            if (result.success) {
+                showToast('Email sent!');
+                await loadInvitations(); // Refresh to show sent status
+            } else {
+                showToast('Failed to send: ' + (result.error || 'Unknown error'));
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Send all emails
+        async function sendAllEmails() {
+            const toSend = invitations.filter(inv => inv.email && !inv.sent_at);
+
+            if (toSend.length === 0) {
+                showToast('No unsent emails to send');
+                return;
+            }
+
+            if (!confirm(`Send invitation emails to ${toSend.length} guest(s)?`)) {
+                return;
+            }
+
+            const progressEl = document.getElementById('email-progress');
+            const progressText = document.getElementById('email-progress-text');
+            const progressFill = document.getElementById('email-progress-fill');
+            const progressCount = document.getElementById('email-progress-count');
+            const btn = document.getElementById('send-all-emails-btn');
+
+            progressEl.style.display = 'block';
+            btn.disabled = true;
+
+            const results = await Email.sendBulk(toSend, currentEvent, (progress) => {
+                const percent = (progress.current / progress.total) * 100;
+                progressFill.style.width = `${percent}%`;
+                progressCount.textContent = `${progress.current} / ${progress.total}`;
+                progressText.textContent = `Sending... (${progress.success} sent, ${progress.failed} failed)`;
+            });
+
+            progressText.textContent = `Done! ${results.success} sent, ${results.failed} failed`;
+
+            setTimeout(() => {
+                progressEl.style.display = 'none';
+                btn.disabled = false;
+            }, 3000);
+
+            await loadInvitations();
         }
 
         // Update stats
@@ -317,6 +454,9 @@
 
             // Add guests
             document.getElementById('add-guests-btn').addEventListener('click', addGuests);
+
+            // Send all emails
+            document.getElementById('send-all-emails-btn').addEventListener('click', sendAllEmails);
 
             // Copy all phones
             document.getElementById('copy-phones-btn').addEventListener('click', () => {

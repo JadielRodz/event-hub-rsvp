@@ -194,6 +194,30 @@ const Invitations = {
         return `${baseUrl}rsvp.html?token=${token}`;
     },
 
+    // Regenerate token for an invitation (creates new link, invalidates old one)
+    async regenerateToken(invitationId) {
+        try {
+            // Generate a new UUID token
+            const newToken = crypto.randomUUID();
+
+            const { data, error } = await window.supabaseClient
+                .from('invitations')
+                .update({
+                    token: newToken,
+                    sent_at: null // Reset sent status since link changed
+                })
+                .eq('id', invitationId)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return { success: true, data };
+        } catch (error) {
+            console.error('Regenerate token error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     // Format phone number for display
     formatPhone(phone) {
         if (!phone) return '-';

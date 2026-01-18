@@ -224,6 +224,41 @@ const SUPABASE_URL = 'your-project-url';
 const SUPABASE_ANON_KEY = 'your-anon-key';
 ```
 
+### 8. Email Invitations Setup (Optional)
+
+To enable email invitations, you'll need to set up Resend and deploy a Supabase Edge Function.
+
+#### Step 1: Create a Resend Account
+1. Go to [resend.com](https://resend.com) and create a free account
+2. Add and verify your domain (or use their test domain for development)
+3. Create an API key in the dashboard
+
+#### Step 2: Deploy the Edge Function
+```bash
+# Install Supabase CLI if you haven't
+npm install -g supabase
+
+# Login to Supabase
+supabase login
+
+# Link your project
+supabase link --project-ref your-project-ref
+
+# Set the secrets
+supabase secrets set RESEND_API_KEY=re_your_api_key
+supabase secrets set FROM_EMAIL="Synathrozo <invitations@yourdomain.com>"
+
+# Deploy the function
+supabase functions deploy send-invitation-email --no-verify-jwt
+```
+
+#### Step 3: Test
+1. Go to Manage Invitations for any event
+2. Add a guest with an email address
+3. Click the ✉️ button to send an individual email, or "Send All Invitations" for bulk sending
+
+**Note:** The free Resend tier allows 3,000 emails/month.
+
 ## Running Locally
 
 Since this is a static site, you can use any local server:
