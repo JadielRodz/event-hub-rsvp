@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synathrozo - Create Event</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">Synathrozo</a>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">My Events</a>
+                <a href="create-event.html" class="nav-link active">Create Event</a>
+                <button id="logout-btn" class="btn btn-outline btn-sm">Logout</button>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container container-sm">
+            <div class="page-header">
+                <div>
+                    <h1>Create New Event</h1>
+                    <p>Fill in the details below to create your event</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <form id="create-event-form" class="form">
+                    <div id="message" class="message" style="display: none;"></div>
+
+                    <div class="form-group">
+                        <label for="title">Event Title <span class="required">*</span></label>
+                        <input
+                            type="text"
+                            id="title"
+                            name="title"
+                            required
+                            placeholder="Enter event title"
+                            maxlength="100"
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea
+                            id="description"
+                            name="description"
+                            rows="4"
+                            placeholder="Describe your event (optional)"
+                            maxlength="1000"
+                        ></textarea>
+                        <span class="char-count"><span id="desc-count">0</span>/1000</span>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="event-date">Date & Time <span class="required">*</span></label>
+                            <input
+                                type="datetime-local"
+                                id="event-date"
+                                name="event-date"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="location">Location</label>
+                            <input
+                                type="text"
+                                id="location"
+                                name="location"
+                                placeholder="Enter location (optional)"
+                                maxlength="200"
+                            >
+                        </div>
+                    </div>
+
+                    <!-- Template Selection -->
+                    <div class="form-group">
+                        <label>Invitation Template</label>
+                        <p class="form-hint" style="margin-bottom: 12px; color: var(--text-muted);">Choose a design for your RSVP invitation</p>
+                        <div id="template-selector" class="template-grid">
+                            <!-- Templates will be inserted here -->
+                        </div>
+                        <input type="hidden" id="selected-template" name="template" value="shabby-chic">
+                    </div>
+
+                    <div class="form-actions">
+                        <a href="dashboard.html" class="btn btn-outline">Cancel</a>
+                        <button type="submit" id="create-btn" class="btn btn-primary">
+                            Create Event
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Load scripts in order -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            const user = await Auth.requireAuth();
+            if (!user) return;
+
+            // Set minimum date to today
+            const dateInput = document.getElementById('event-date');
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            dateInput.min = now.toISOString().slice(0, 16);
+
+            // Setup character counter
+            setupCharCounter();
+
+            // Render templates
+            renderTemplates();
+
+            // Setup mobile nav toggle
+            setupMobileNav();
+        });
+
+        // Render template selection
+        function renderTemplates() {
+            const container = document.getElementById('template-selector');
+            const templates = Events.getTemplates();
+
+            container.innerHTML = templates.map(template => `
+                <div class="template-card ${template.id === 'shabby-chic' ? 'selected' : ''}"
+                     data-template="${template.id}"
+                     onclick="selectTemplate('${template.id}')">
+                    <div class="template-preview">
+                        <div class="template-colors">
+                            ${template.colors.map(c => `<span class="color-dot" style="background: ${c}"></span>`).join('')}
+                        </div>
+                    </div>
+                    <div class="template-info">
+                        <h4>${template.name}</h4>
+                        <p>${template.description}</p>
+                    </div>
+                    <div class="template-check">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <circle cx="10" cy="10" r="9" stroke="currentColor" stroke-width="2"/>
+                            <path d="M6 10l2.5 2.5L14 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Select template
+        function selectTemplate(templateId) {
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-template="${templateId}"]`).classList.add('selected');
+            document.getElementById('selected-template').value = templateId;
+        }
+
+        // Character counter for description
+        function setupCharCounter() {
+            const descInput = document.getElementById('description');
+            const countEl = document.getElementById('desc-count');
+
+            descInput.addEventListener('input', () => {
+                countEl.textContent = descInput.value.length;
+            });
+        }
+
+        // Handle form submission
+        document.getElementById('create-event-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const eventDate = document.getElementById('event-date').value;
+            const location = document.getElementById('location').value.trim();
+            const template = document.getElementById('selected-template').value;
+            const messageEl = document.getElementById('message');
+            const createBtn = document.getElementById('create-btn');
+
+            // Clear previous messages
+            Utils.hideMessage(messageEl);
+
+            // Validate inputs
+            if (!title) {
+                Utils.showMessage(messageEl, 'Please enter an event title', 'error');
+                return;
+            }
+
+            if (!eventDate) {
+                Utils.showMessage(messageEl, 'Please select a date and time', 'error');
+                return;
+            }
+
+            // Show loading state
+            Utils.showLoading(createBtn, 'Creating...');
+
+            // Create event
+            const result = await Events.create({
+                title,
+                description,
+                event_date: eventDate,
+                location,
+                template
+            });
+
+            if (result.success) {
+                Utils.showMessage(messageEl, 'Event created successfully! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = `event-detail.html?id=${result.data.id}`;
+                }, 1000);
+            } else {
+                Utils.hideLoading(createBtn);
+                Utils.showMessage(messageEl, result.error || 'Failed to create event', 'error');
+            }
+        });
+
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            const result = await Auth.signOut();
+            if (result.success) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Mobile navigation toggle
+        function setupMobileNav() {
+            const navToggle = document.getElementById('nav-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                navToggle.classList.toggle('active');
+            });
+        }
+    </script>
+</body>
+</html>

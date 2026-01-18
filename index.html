@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synathrozo - Login</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="logo">Synathrozo</h1>
+                <p class="tagline">Create and manage your events with ease</p>
+            </div>
+
+            <form id="login-form" class="auth-form">
+                <h2>Welcome Back</h2>
+
+                <div id="message" class="message" style="display: none;"></div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                    >
+                </div>
+
+                <button type="submit" id="login-btn" class="btn btn-primary btn-block">
+                    Log In
+                </button>
+
+                <p class="auth-switch">
+                    Don't have an account? <a href="signup.html">Sign up</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load scripts in order -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            await Auth.redirectIfAuthenticated();
+        });
+
+        // Handle login form submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('message');
+            const loginBtn = document.getElementById('login-btn');
+
+            // Clear previous messages
+            Utils.hideMessage(messageEl);
+
+            // Validate inputs
+            if (!Utils.isValidEmail(email)) {
+                Utils.showMessage(messageEl, 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (!password) {
+                Utils.showMessage(messageEl, 'Please enter your password', 'error');
+                return;
+            }
+
+            // Show loading state
+            Utils.showLoading(loginBtn, 'Logging in...');
+
+            // Attempt login
+            const result = await Auth.signIn(email, password);
+
+            if (result.success) {
+                Utils.showMessage(messageEl, 'Login successful! Redirecting...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 1000);
+            } else {
+                Utils.hideLoading(loginBtn);
+                Utils.showMessage(messageEl, result.error || 'Login failed. Please try again.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

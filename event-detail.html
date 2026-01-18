@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synathrozo - Event Details</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">Synathrozo</a>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">My Events</a>
+                <a href="create-event.html" class="nav-link">Create Event</a>
+                <button id="logout-btn" class="btn btn-outline btn-sm">Logout</button>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container container-sm">
+            <!-- Loading State -->
+            <div id="loading" class="loading-container">
+                <div class="spinner-large"></div>
+                <p>Loading event details...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">⚠️</div>
+                <h2>Event Not Found</h2>
+                <p>The event you're looking for doesn't exist or you don't have permission to view it.</p>
+                <a href="dashboard.html" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+
+            <!-- Event Details View -->
+            <div id="event-view" style="display: none;">
+                <div class="page-header">
+                    <a href="dashboard.html" class="back-link">← Back to Events</a>
+                </div>
+
+                <div class="card event-detail-card">
+                    <div class="event-detail-header">
+                        <div id="event-status" class="event-status"></div>
+                        <h1 id="event-title" class="event-detail-title"></h1>
+                    </div>
+
+                    <div class="event-detail-info">
+                        <div class="info-item">
+                            <span class="info-icon">📅</span>
+                            <div>
+                                <label>Date & Time</label>
+                                <p id="event-date"></p>
+                            </div>
+                        </div>
+
+                        <div class="info-item">
+                            <span class="info-icon">📍</span>
+                            <div>
+                                <label>Location</label>
+                                <p id="event-location"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="event-detail-description">
+                        <label>Description</label>
+                        <p id="event-description"></p>
+                    </div>
+
+                    <div class="event-detail-meta">
+                        <small id="event-created"></small>
+                        <small id="event-updated"></small>
+                    </div>
+
+                    <!-- Invitation Stats -->
+                    <div id="invitation-stats" class="invitation-stats-mini" style="display: none;">
+                        <h4>RSVP Status</h4>
+                        <div class="stats-mini">
+                            <span class="stat-mini"><strong id="mini-attending">0</strong> Attending</span>
+                            <span class="stat-mini"><strong id="mini-declined">0</strong> Declined</span>
+                            <span class="stat-mini"><strong id="mini-pending">0</strong> Pending</span>
+                            <span class="stat-mini stat-highlight"><strong id="mini-total-guests">0</strong> Total Guests</span>
+                        </div>
+                    </div>
+
+                    <div class="event-detail-actions">
+                        <a href="#" id="manage-invitations-btn" class="btn btn-secondary">Manage Invitations</a>
+                        <button id="edit-btn" class="btn btn-primary">Edit Event</button>
+                        <button id="delete-btn" class="btn btn-danger">Delete Event</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Event Form -->
+            <div id="event-edit" style="display: none;">
+                <div class="page-header">
+                    <div>
+                        <h1>Edit Event</h1>
+                        <p>Update your event details below</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <form id="edit-event-form" class="form">
+                        <div id="edit-message" class="message" style="display: none;"></div>
+
+                        <div class="form-group">
+                            <label for="edit-title">Event Title <span class="required">*</span></label>
+                            <input
+                                type="text"
+                                id="edit-title"
+                                name="title"
+                                required
+                                placeholder="Enter event title"
+                                maxlength="100"
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="edit-description">Description</label>
+                            <textarea
+                                id="edit-description"
+                                name="description"
+                                rows="4"
+                                placeholder="Describe your event (optional)"
+                                maxlength="1000"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="edit-date">Date & Time <span class="required">*</span></label>
+                                <input
+                                    type="datetime-local"
+                                    id="edit-date"
+                                    name="event-date"
+                                    required
+                                >
+                            </div>
+
+                            <div class="form-group">
+                                <label for="edit-location">Location</label>
+                                <input
+                                    type="text"
+                                    id="edit-location"
+                                    name="location"
+                                    placeholder="Enter location (optional)"
+                                    maxlength="200"
+                                >
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="cancel-edit-btn" class="btn btn-outline">Cancel</button>
+                            <button type="submit" id="save-btn" class="btn btn-primary">Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Delete Event?</h2>
+            <p>Are you sure you want to delete this event? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="cancel-delete-btn" class="btn btn-outline">Cancel</button>
+                <button id="confirm-delete-btn" class="btn btn-danger">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Load scripts in order -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/invitations.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let currentEvent = null;
+        let eventId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            const user = await Auth.requireAuth();
+            if (!user) return;
+
+            // Get event ID from URL
+            eventId = Utils.getUrlParam('id');
+            if (!eventId) {
+                showError();
+                return;
+            }
+
+            // Load event details
+            await loadEvent();
+
+            // Setup event listeners
+            setupEventListeners();
+
+            // Setup mobile nav toggle
+            setupMobileNav();
+        });
+
+        // Load event details
+        async function loadEvent() {
+            const result = await Events.getById(eventId);
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (!result.success || !result.data) {
+                showError();
+                return;
+            }
+
+            currentEvent = result.data;
+
+            // Verify user owns this event
+            const user = await Auth.getCurrentUser();
+            if (currentEvent.user_id !== user.id) {
+                showError();
+                return;
+            }
+
+            displayEvent();
+        }
+
+        // Display event details
+        async function displayEvent() {
+            const isPast = Utils.isPastDate(currentEvent.event_date);
+
+            // Update status
+            const statusEl = document.getElementById('event-status');
+            statusEl.textContent = isPast ? 'Past Event' : Utils.getRelativeTime(currentEvent.event_date);
+            statusEl.className = `event-status ${isPast ? 'status-past' : 'status-upcoming'}`;
+
+            // Update details
+            document.getElementById('event-title').textContent = currentEvent.title;
+            document.getElementById('event-date').textContent = Events.formatDate(currentEvent.event_date);
+            document.getElementById('event-location').textContent = currentEvent.location || 'No location specified';
+            document.getElementById('event-description').textContent = currentEvent.description || 'No description provided';
+
+            // Update meta
+            document.getElementById('event-created').textContent = `Created: ${new Date(currentEvent.created_at).toLocaleDateString()}`;
+            if (currentEvent.updated_at && currentEvent.updated_at !== currentEvent.created_at) {
+                document.getElementById('event-updated').textContent = `Last updated: ${new Date(currentEvent.updated_at).toLocaleDateString()}`;
+            }
+
+            // Update page title
+            document.title = `${currentEvent.title} - Synathrozo`;
+
+            // Set manage invitations link
+            document.getElementById('manage-invitations-btn').href = `manage-invitations.html?id=${eventId}`;
+
+            // Load invitation stats
+            await loadInvitationStats();
+
+            // Show event view
+            document.getElementById('event-view').style.display = 'block';
+        }
+
+        // Load invitation stats
+        async function loadInvitationStats() {
+            const result = await Invitations.getStats(eventId);
+            if (result.success && result.data.total > 0) {
+                const stats = result.data;
+                document.getElementById('mini-attending').textContent = stats.accepted;
+                document.getElementById('mini-declined').textContent = stats.declined;
+                document.getElementById('mini-pending').textContent = stats.pending + stats.opened;
+                document.getElementById('mini-total-guests').textContent = stats.totalGuests;
+                document.getElementById('invitation-stats').style.display = 'block';
+            }
+        }
+
+        // Show error state
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-state').style.display = 'flex';
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Edit button
+            document.getElementById('edit-btn').addEventListener('click', showEditForm);
+
+            // Cancel edit button
+            document.getElementById('cancel-edit-btn').addEventListener('click', hideEditForm);
+
+            // Edit form submission
+            document.getElementById('edit-event-form').addEventListener('submit', handleUpdate);
+
+            // Delete button
+            document.getElementById('delete-btn').addEventListener('click', showDeleteModal);
+
+            // Cancel delete
+            document.getElementById('cancel-delete-btn').addEventListener('click', hideDeleteModal);
+            document.querySelector('.modal-overlay').addEventListener('click', hideDeleteModal);
+
+            // Confirm delete
+            document.getElementById('confirm-delete-btn').addEventListener('click', handleDelete);
+
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                const result = await Auth.signOut();
+                if (result.success) {
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
+        // Show edit form
+        function showEditForm() {
+            document.getElementById('event-view').style.display = 'none';
+            document.getElementById('event-edit').style.display = 'block';
+
+            // Populate form
+            document.getElementById('edit-title').value = currentEvent.title;
+            document.getElementById('edit-description').value = currentEvent.description || '';
+            document.getElementById('edit-date').value = Events.formatDateForInput(currentEvent.event_date);
+            document.getElementById('edit-location').value = currentEvent.location || '';
+        }
+
+        // Hide edit form
+        function hideEditForm() {
+            document.getElementById('event-edit').style.display = 'none';
+            document.getElementById('event-view').style.display = 'block';
+        }
+
+        // Handle update submission
+        async function handleUpdate(e) {
+            e.preventDefault();
+
+            const title = document.getElementById('edit-title').value.trim();
+            const description = document.getElementById('edit-description').value.trim();
+            const eventDate = document.getElementById('edit-date').value;
+            const location = document.getElementById('edit-location').value.trim();
+            const messageEl = document.getElementById('edit-message');
+            const saveBtn = document.getElementById('save-btn');
+
+            Utils.hideMessage(messageEl);
+
+            if (!title) {
+                Utils.showMessage(messageEl, 'Please enter an event title', 'error');
+                return;
+            }
+
+            if (!eventDate) {
+                Utils.showMessage(messageEl, 'Please select a date and time', 'error');
+                return;
+            }
+
+            Utils.showLoading(saveBtn, 'Saving...');
+
+            const result = await Events.update(eventId, {
+                title,
+                description,
+                event_date: eventDate,
+                location
+            });
+
+            if (result.success) {
+                currentEvent = result.data;
+                displayEvent();
+                hideEditForm();
+            } else {
+                Utils.hideLoading(saveBtn);
+                Utils.showMessage(messageEl, result.error || 'Failed to update event', 'error');
+            }
+        }
+
+        // Show delete modal
+        function showDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'flex';
+        }
+
+        // Hide delete modal
+        function hideDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+        }
+
+        // Handle delete
+        async function handleDelete() {
+            const confirmBtn = document.getElementById('confirm-delete-btn');
+            Utils.showLoading(confirmBtn, 'Deleting...');
+
+            const result = await Events.delete(eventId);
+
+            if (result.success) {
+                window.location.href = 'dashboard.html';
+            } else {
+                Utils.hideLoading(confirmBtn);
+                alert(result.error || 'Failed to delete event');
+            }
+        }
+
+        // Mobile navigation toggle
+        function setupMobileNav() {
+            const navToggle = document.getElementById('nav-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                navToggle.classList.toggle('active');
+            });
+        }
+    </script>
+</body>
+</html>

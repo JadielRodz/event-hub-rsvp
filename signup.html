@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synathrozo - Sign Up</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1 class="logo">Synathrozo</h1>
+                <p class="tagline">Create and manage your events with ease</p>
+            </div>
+
+            <form id="signup-form" class="auth-form">
+                <h2>Create Account</h2>
+
+                <div id="message" class="message" style="display: none;"></div>
+
+                <div class="form-group">
+                    <label for="fullname">Full Name</label>
+                    <input
+                        type="text"
+                        id="fullname"
+                        name="fullname"
+                        required
+                        placeholder="Enter your full name"
+                        autocomplete="name"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        placeholder="Enter your email"
+                        autocomplete="email"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        required
+                        placeholder="Create a password (min 6 characters)"
+                        autocomplete="new-password"
+                        minlength="6"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input
+                        type="password"
+                        id="confirm-password"
+                        name="confirm-password"
+                        required
+                        placeholder="Confirm your password"
+                        autocomplete="new-password"
+                    >
+                </div>
+
+                <button type="submit" id="signup-btn" class="btn btn-primary btn-block">
+                    Create Account
+                </button>
+
+                <p class="auth-switch">
+                    Already have an account? <a href="index.html">Log in</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load scripts in order -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        // Check if already logged in
+        document.addEventListener('DOMContentLoaded', async () => {
+            await Auth.redirectIfAuthenticated();
+        });
+
+        // Handle signup form submission
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullname').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            const messageEl = document.getElementById('message');
+            const signupBtn = document.getElementById('signup-btn');
+
+            // Clear previous messages
+            Utils.hideMessage(messageEl);
+
+            // Validate inputs
+            if (!fullName) {
+                Utils.showMessage(messageEl, 'Please enter your full name', 'error');
+                return;
+            }
+
+            if (!Utils.isValidEmail(email)) {
+                Utils.showMessage(messageEl, 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            if (!Utils.isValidPassword(password)) {
+                Utils.showMessage(messageEl, 'Password must be at least 6 characters long', 'error');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                Utils.showMessage(messageEl, 'Passwords do not match', 'error');
+                return;
+            }
+
+            // Show loading state
+            Utils.showLoading(signupBtn, 'Creating account...');
+
+            // Attempt signup
+            const result = await Auth.signUp(email, password, fullName);
+
+            if (result.success) {
+                // Check if email confirmation is required
+                if (result.data.user && !result.data.session) {
+                    Utils.showMessage(
+                        messageEl,
+                        'Account created! Please check your email to confirm your account.',
+                        'success'
+                    );
+                    Utils.hideLoading(signupBtn);
+                } else {
+                    Utils.showMessage(messageEl, 'Account created! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html';
+                    }, 1000);
+                }
+            } else {
+                Utils.hideLoading(signupBtn);
+                Utils.showMessage(messageEl, result.error || 'Signup failed. Please try again.', 'error');
+            }
+        });
+    </script>
+</body>
+</html>

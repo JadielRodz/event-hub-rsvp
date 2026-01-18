@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synathrozo - Manage Invitations</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">Synathrozo</a>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link">My Events</a>
+                <a href="create-event.html" class="nav-link">Create Event</a>
+                <button id="logout-btn" class="btn btn-outline btn-sm">Logout</button>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Loading State -->
+            <div id="loading" class="loading-container">
+                <div class="spinner-large"></div>
+                <p>Loading invitations...</p>
+            </div>
+
+            <!-- Error State -->
+            <div id="error-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">⚠️</div>
+                <h2>Event Not Found</h2>
+                <p>The event you're looking for doesn't exist or you don't have permission to manage it.</p>
+                <a href="dashboard.html" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+
+            <!-- Main Content -->
+            <div id="main-content" style="display: none;">
+                <div class="page-header">
+                    <div>
+                        <a href="#" id="back-link" class="back-link">← Back to Event</a>
+                        <h1 id="event-title">Manage Invitations</h1>
+                    </div>
+                </div>
+
+                <!-- Stats Bar -->
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-total">0</span>
+                        <span class="stat-label">Total Invited</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-accepted">0</span>
+                        <span class="stat-label">Attending</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-declined">0</span>
+                        <span class="stat-label">Declined</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="stat-pending">0</span>
+                        <span class="stat-label">Pending</span>
+                    </div>
+                    <div class="stat-item stat-highlight">
+                        <span class="stat-number" id="stat-guests">0</span>
+                        <span class="stat-label">Total Guests</span>
+                    </div>
+                </div>
+
+                <!-- Shareable Link Section -->
+                <div class="card share-card">
+                    <h3>Share Event Link</h3>
+                    <p>Copy this link to share with guests. They can RSVP without needing an account.</p>
+                    <div class="copy-link-container">
+                        <input type="text" id="share-link" class="copy-link-input" readonly>
+                        <button id="copy-link-btn" class="btn btn-primary">Copy Link</button>
+                    </div>
+                </div>
+
+                <!-- Add Invitations -->
+                <div class="card">
+                    <h3>Add Guests</h3>
+                    <p>Enter email addresses (one per line or comma-separated)</p>
+                    <div id="add-message" class="message" style="display: none;"></div>
+                    <div class="form-group">
+                        <textarea
+                            id="emails-input"
+                            rows="3"
+                            placeholder="email1@example.com&#10;email2@example.com"
+                        ></textarea>
+                    </div>
+                    <button id="add-guests-btn" class="btn btn-primary">Add Guests</button>
+                </div>
+
+                <!-- Bulk Actions -->
+                <div class="bulk-actions">
+                    <button id="copy-phones-btn" class="btn btn-outline btn-sm">Copy All Phone Numbers</button>
+                    <button id="copy-emails-btn" class="btn btn-outline btn-sm">Copy All Emails</button>
+                </div>
+
+                <!-- Invitations List -->
+                <div class="card">
+                    <h3>Guest List</h3>
+                    <div id="invitations-empty" class="empty-state-small" style="display: none;">
+                        <p>No guests invited yet. Add some emails above to get started.</p>
+                    </div>
+                    <div id="invitations-table-container" style="display: none;">
+                        <div class="table-responsive">
+                            <table class="invitations-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Status</th>
+                                        <th>Guests</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invitations-list">
+                                    <!-- Invitations will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal" style="display: none;">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+            <h2>Remove Guest?</h2>
+            <p>Are you sure you want to remove this guest from the invitation list?</p>
+            <div class="modal-actions">
+                <button id="cancel-delete-btn" class="btn btn-outline">Cancel</button>
+                <button id="confirm-delete-btn" class="btn btn-danger">Remove</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/invitations.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let eventId = null;
+        let currentEvent = null;
+        let invitations = [];
+        let deleteInvitationId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = await Auth.requireAuth();
+            if (!user) return;
+
+            eventId = Utils.getUrlParam('id');
+            if (!eventId) {
+                showError();
+                return;
+            }
+
+            await loadEventAndInvitations();
+            setupEventListeners();
+            setupMobileNav();
+        });
+
+        // Load event and invitations
+        async function loadEventAndInvitations() {
+            // Load event
+            const eventResult = await Events.getById(eventId);
+            if (!eventResult.success || !eventResult.data) {
+                showError();
+                return;
+            }
+
+            currentEvent = eventResult.data;
+
+            // Verify ownership
+            const user = await Auth.getCurrentUser();
+            if (currentEvent.user_id !== user.id) {
+                showError();
+                return;
+            }
+
+            // Update UI
+            document.getElementById('event-title').textContent = `Invitations: ${currentEvent.title}`;
+            document.getElementById('back-link').href = `event-detail.html?id=${eventId}`;
+
+            // Generate and display share link
+            const shareLink = `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, '')}rsvp.html?event=${eventId}`;
+            document.getElementById('share-link').value = shareLink;
+
+            // Load invitations
+            await loadInvitations();
+
+            // Show main content
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('main-content').style.display = 'block';
+        }
+
+        // Load invitations
+        async function loadInvitations() {
+            const result = await Invitations.getByEvent(eventId);
+            if (result.success) {
+                invitations = result.data;
+                renderInvitations();
+                updateStats();
+            }
+        }
+
+        // Render invitations table
+        function renderInvitations() {
+            const listEl = document.getElementById('invitations-list');
+            const emptyEl = document.getElementById('invitations-empty');
+            const tableEl = document.getElementById('invitations-table-container');
+
+            if (invitations.length === 0) {
+                emptyEl.style.display = 'block';
+                tableEl.style.display = 'none';
+                return;
+            }
+
+            emptyEl.style.display = 'none';
+            tableEl.style.display = 'block';
+
+            listEl.innerHTML = invitations.map(inv => {
+                const status = Invitations.getStatusDisplay(inv.status);
+                const rsvpLink = Invitations.getRSVPLink(inv.token);
+
+                return `
+                    <tr>
+                        <td>${Utils.escapeHtml(inv.name || '-')}</td>
+                        <td>${Utils.escapeHtml(inv.email || '-')}</td>
+                        <td>${Invitations.formatPhone(inv.phone)}</td>
+                        <td><span class="status-badge ${status.class}">${status.label}</span></td>
+                        <td>${inv.status === 'accepted' ? inv.guest_count : '-'}</td>
+                        <td class="actions-cell">
+                            <button class="btn btn-sm btn-outline copy-link-btn" data-link="${rsvpLink}" title="Copy RSVP Link">
+                                Copy Link
+                            </button>
+                            <button class="btn btn-sm btn-danger delete-btn" data-id="${inv.id}" title="Remove">
+                                ✕
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Add event listeners to action buttons
+            listEl.querySelectorAll('.copy-link-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    copyToClipboard(btn.dataset.link);
+                    showToast('Link copied!');
+                });
+            });
+
+            listEl.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    deleteInvitationId = btn.dataset.id;
+                    document.getElementById('delete-modal').style.display = 'flex';
+                });
+            });
+        }
+
+        // Update stats
+        function updateStats() {
+            const stats = {
+                total: invitations.length,
+                pending: 0,
+                opened: 0,
+                accepted: 0,
+                declined: 0,
+                guests: 0
+            };
+
+            invitations.forEach(inv => {
+                if (inv.status === 'pending') stats.pending++;
+                else if (inv.status === 'opened') stats.opened++;
+                else if (inv.status === 'accepted') {
+                    stats.accepted++;
+                    stats.guests += inv.guest_count || 1;
+                }
+                else if (inv.status === 'declined') stats.declined++;
+            });
+
+            // Pending includes opened (not yet responded)
+            stats.pending += stats.opened;
+
+            document.getElementById('stat-total').textContent = stats.total;
+            document.getElementById('stat-accepted').textContent = stats.accepted;
+            document.getElementById('stat-declined').textContent = stats.declined;
+            document.getElementById('stat-pending').textContent = stats.pending;
+            document.getElementById('stat-guests').textContent = stats.guests;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Copy share link
+            document.getElementById('copy-link-btn').addEventListener('click', () => {
+                const link = document.getElementById('share-link').value;
+                copyToClipboard(link);
+                showToast('Link copied to clipboard!');
+            });
+
+            // Add guests
+            document.getElementById('add-guests-btn').addEventListener('click', addGuests);
+
+            // Copy all phones
+            document.getElementById('copy-phones-btn').addEventListener('click', () => {
+                const phones = invitations
+                    .filter(inv => inv.phone && inv.status === 'accepted')
+                    .map(inv => inv.phone)
+                    .join('\n');
+                if (phones) {
+                    copyToClipboard(phones);
+                    showToast('Phone numbers copied!');
+                } else {
+                    showToast('No phone numbers to copy');
+                }
+            });
+
+            // Copy all emails
+            document.getElementById('copy-emails-btn').addEventListener('click', () => {
+                const emails = invitations
+                    .filter(inv => inv.email)
+                    .map(inv => inv.email)
+                    .join(', ');
+                if (emails) {
+                    copyToClipboard(emails);
+                    showToast('Emails copied!');
+                } else {
+                    showToast('No emails to copy');
+                }
+            });
+
+            // Delete modal
+            document.getElementById('cancel-delete-btn').addEventListener('click', hideDeleteModal);
+            document.querySelector('#delete-modal .modal-overlay').addEventListener('click', hideDeleteModal);
+            document.getElementById('confirm-delete-btn').addEventListener('click', confirmDelete);
+
+            // Logout
+            document.getElementById('logout-btn').addEventListener('click', async () => {
+                await Auth.signOut();
+                window.location.href = 'index.html';
+            });
+        }
+
+        // Add guests
+        async function addGuests() {
+            const input = document.getElementById('emails-input');
+            const messageEl = document.getElementById('add-message');
+            const btn = document.getElementById('add-guests-btn');
+
+            const text = input.value.trim();
+            if (!text) {
+                Utils.showMessage(messageEl, 'Please enter at least one email address', 'error');
+                return;
+            }
+
+            // Parse emails (split by newline, comma, or semicolon)
+            const emails = text
+                .split(/[\n,;]+/)
+                .map(e => e.trim().toLowerCase())
+                .filter(e => e && Utils.isValidEmail(e));
+
+            if (emails.length === 0) {
+                Utils.showMessage(messageEl, 'Please enter valid email addresses', 'error');
+                return;
+            }
+
+            // Check for duplicates
+            const existingEmails = invitations.map(inv => inv.email?.toLowerCase());
+            const newEmails = emails.filter(e => !existingEmails.includes(e));
+
+            if (newEmails.length === 0) {
+                Utils.showMessage(messageEl, 'All email addresses are already invited', 'warning');
+                return;
+            }
+
+            Utils.showLoading(btn, 'Adding...');
+
+            const result = await Invitations.create(eventId, newEmails);
+
+            Utils.hideLoading(btn);
+
+            if (result.success) {
+                input.value = '';
+                Utils.showMessage(messageEl, `${newEmails.length} guest(s) added successfully!`, 'success');
+                await loadInvitations();
+            } else {
+                Utils.showMessage(messageEl, result.error || 'Failed to add guests', 'error');
+            }
+        }
+
+        // Delete invitation
+        async function confirmDelete() {
+            if (!deleteInvitationId) return;
+
+            const btn = document.getElementById('confirm-delete-btn');
+            Utils.showLoading(btn, 'Removing...');
+
+            const result = await Invitations.delete(deleteInvitationId);
+
+            Utils.hideLoading(btn);
+            hideDeleteModal();
+
+            if (result.success) {
+                showToast('Guest removed');
+                await loadInvitations();
+            } else {
+                showToast('Failed to remove guest');
+            }
+
+            deleteInvitationId = null;
+        }
+
+        function hideDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+        }
+
+        // Show error state
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-state').style.display = 'flex';
+        }
+
+        // Copy to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).catch(err => {
+                // Fallback for older browsers
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            // Create toast if doesn't exist
+            let toast = document.getElementById('toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast';
+                toast.className = 'toast';
+                document.body.appendChild(toast);
+            }
+
+            toast.textContent = message;
+            toast.classList.add('show');
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2000);
+        }
+
+        // Mobile navigation
+        function setupMobileNav() {
+            const navToggle = document.getElementById('nav-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                navToggle.classList.toggle('active');
+            });
+        }
+    </script>
+</body>
+</html>

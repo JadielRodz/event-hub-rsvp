@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Synathrozo - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Supabase JS Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="dashboard.html" class="nav-logo">Synathrozo</a>
+            <div class="nav-menu">
+                <a href="dashboard.html" class="nav-link active">My Events</a>
+                <a href="create-event.html" class="nav-link">Create Event</a>
+                <button id="logout-btn" class="btn btn-outline btn-sm">Logout</button>
+            </div>
+            <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <div>
+                    <h1>My Events</h1>
+                    <p class="welcome-text">Welcome, <span id="user-name">User</span>!</p>
+                </div>
+                <a href="create-event.html" class="btn btn-primary">
+                    <span class="btn-icon">+</span> Create Event
+                </a>
+            </div>
+
+            <div id="message" class="message" style="display: none;"></div>
+
+            <!-- Loading State -->
+            <div id="loading" class="loading-container">
+                <div class="spinner-large"></div>
+                <p>Loading your events...</p>
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">📅</div>
+                <h2>No Events Yet</h2>
+                <p>You haven't created any events. Start by creating your first event!</p>
+                <a href="create-event.html" class="btn btn-primary">Create Your First Event</a>
+            </div>
+
+            <!-- Events Grid -->
+            <div id="events-grid" class="events-grid" style="display: none;">
+                <!-- Events will be dynamically inserted here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Load scripts in order -->
+    <script src="js/config.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let currentUser = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check authentication
+            currentUser = await Auth.requireAuth();
+            if (!currentUser) return;
+
+            // Display user name
+            const userName = currentUser.user_metadata?.full_name || currentUser.email;
+            document.getElementById('user-name').textContent = userName;
+
+            // Load events
+            await loadEvents();
+
+            // Setup mobile nav toggle
+            setupMobileNav();
+        });
+
+        // Load and display events
+        async function loadEvents() {
+            const loadingEl = document.getElementById('loading');
+            const emptyStateEl = document.getElementById('empty-state');
+            const eventsGridEl = document.getElementById('events-grid');
+            const messageEl = document.getElementById('message');
+
+            try {
+                const result = await Events.getAll();
+
+                // Hide loading
+                loadingEl.style.display = 'none';
+
+                if (!result.success) {
+                    Utils.showMessage(messageEl, result.error || 'Failed to load events', 'error');
+                    return;
+                }
+
+                const events = result.data;
+
+                if (events.length === 0) {
+                    emptyStateEl.style.display = 'flex';
+                } else {
+                    eventsGridEl.style.display = 'grid';
+                    renderEvents(events);
+                }
+            } catch (error) {
+                loadingEl.style.display = 'none';
+                Utils.showMessage(messageEl, 'An error occurred while loading events', 'error');
+            }
+        }
+
+        // Render events to the grid
+        function renderEvents(events) {
+            const eventsGridEl = document.getElementById('events-grid');
+            eventsGridEl.innerHTML = events.map(event => createEventCard(event)).join('');
+        }
+
+        // Create event card HTML
+        function createEventCard(event) {
+            const isPast = Utils.isPastDate(event.event_date);
+            const statusClass = isPast ? 'status-past' : 'status-upcoming';
+            const statusText = isPast ? 'Past' : Utils.getRelativeTime(event.event_date);
+
+            return `
+                <div class="event-card ${isPast ? 'event-past' : ''}">
+                    <div class="event-status ${statusClass}">${statusText}</div>
+                    <h3 class="event-title">${Utils.escapeHtml(event.title)}</h3>
+                    <div class="event-details">
+                        <div class="event-detail">
+                            <span class="detail-icon">📅</span>
+                            <span>${Events.formatDate(event.event_date)}</span>
+                        </div>
+                        <div class="event-detail">
+                            <span class="detail-icon">📍</span>
+                            <span>${Utils.escapeHtml(event.location || 'No location specified')}</span>
+                        </div>
+                    </div>
+                    <p class="event-description">${Utils.escapeHtml(Utils.truncate(event.description || 'No description', 120))}</p>
+                    <div class="event-actions">
+                        <a href="event-detail.html?id=${event.id}" class="btn btn-sm btn-outline">View Details</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Handle logout
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            const result = await Auth.signOut();
+            if (result.success) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        // Mobile navigation toggle
+        function setupMobileNav() {
+            const navToggle = document.getElementById('nav-toggle');
+            const navMenu = document.querySelector('.nav-menu');
+
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                navToggle.classList.toggle('active');
+            });
+        }
+    </script>
+</body>
+</html>

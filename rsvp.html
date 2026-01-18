@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>You're Invited! - Synathrozo</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* =====================================================
+           SHABBY CHIC / VINTAGE FLORAL TEMPLATE
+           ===================================================== */
+
+        .evite-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #fdf6f0 0%, #fff9f5 50%, #fef5ee 100%);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cormorant Garamond', 'Georgia', serif;
+        }
+
+        .evite-container {
+            width: 100%;
+            max-width: 440px;
+            perspective: 1000px;
+        }
+
+        /* The Invitation Card - Vintage Style */
+        .evite-card {
+            background: #fffbf8;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow:
+                0 20px 60px rgba(180, 140, 140, 0.15),
+                0 0 0 1px rgba(200, 170, 170, 0.1);
+            position: relative;
+            animation: cardEntrance 0.8s ease-out;
+        }
+
+        @keyframes cardEntrance {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.98);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Floral Pattern Border */
+        .evite-border {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(232, 200, 200, 0.3) 8px,
+                    rgba(232, 200, 200, 0.3) 9px
+                ),
+                repeating-linear-gradient(
+                    90deg,
+                    transparent,
+                    transparent 8px,
+                    rgba(232, 200, 200, 0.3) 8px,
+                    rgba(232, 200, 200, 0.3) 9px
+                );
+            opacity: 0.5;
+        }
+
+        /* Decorative Stripe Border Frame */
+        .evite-frame {
+            margin: 12px;
+            padding: 8px;
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    #fef9f6 0px,
+                    #fef9f6 6px,
+                    #f8e8e8 6px,
+                    #f8e8e8 12px
+                );
+            border: 1px solid #e8d4d4;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        /* Floral vine decoration on stripes */
+        .evite-frame::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%23d4b8b8' fill-opacity='0.15'%3E%3Ccircle cx='10' cy='10' r='3'/%3E%3Ccircle cx='50' cy='50' r='3'/%3E%3Cpath d='M10 10 Q 20 5, 30 10 T 50 10' stroke='%23c9a8a8' stroke-width='0.5' fill='none' opacity='0.3'/%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        /* Inner content area with oval effect */
+        .evite-inner {
+            background: linear-gradient(180deg, #fffcfa 0%, #fff9f6 100%);
+            border: 1px solid #e8d8d8;
+            border-radius: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Oval frame for main content */
+        .evite-oval-frame {
+            position: relative;
+            padding: 30px 25px;
+            text-align: center;
+        }
+
+        .evite-oval-frame::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 15%;
+            right: 15%;
+            bottom: 20px;
+            border: 2px solid #d8c4c4;
+            border-radius: 50%;
+            opacity: 0.4;
+        }
+
+        /* Header */
+        .evite-header {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 10px;
+        }
+
+        .evite-preheader {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.85rem;
+            font-style: italic;
+            color: #c49a9a;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+        }
+
+        .evite-title {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2.8rem;
+            font-weight: 400;
+            color: #b87878;
+            margin: 0;
+            line-height: 1.1;
+            text-shadow: 1px 1px 2px rgba(180, 120, 120, 0.1);
+        }
+
+        .evite-subtitle {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.9rem;
+            font-style: italic;
+            color: #a08080;
+            margin-top: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        /* Decorative divider */
+        .evite-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 15px 0;
+            gap: 10px;
+        }
+
+        .evite-divider-line {
+            width: 40px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d4b8b8, transparent);
+        }
+
+        .evite-divider-icon {
+            color: #c9a0a0;
+            font-size: 0.9rem;
+        }
+
+        /* Guest Name - Honoree style */
+        .evite-honoree {
+            position: relative;
+            z-index: 1;
+            margin: 15px 0;
+        }
+
+        .evite-honoree-label {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #b08888;
+            letter-spacing: 1px;
+        }
+
+        .evite-honoree-name {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2rem;
+            color: #9a7070;
+            margin-top: 3px;
+        }
+
+        /* Date display - elegant three column */
+        .evite-date-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+            position: relative;
+            z-index: 1;
+        }
+
+        .evite-date-col {
+            text-align: center;
+        }
+
+        .evite-date-day {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #a08080;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .evite-date-num {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2.5rem;
+            font-weight: 300;
+            color: #9a7070;
+            line-height: 1;
+            padding: 0 15px;
+            border-left: 1px solid #d8c4c4;
+            border-right: 1px solid #d8c4c4;
+        }
+
+        .evite-date-month {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #a08080;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        /* Event Details */
+        .evite-details {
+            position: relative;
+            z-index: 1;
+            margin: 15px 0;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.95rem;
+            color: #806868;
+            line-height: 1.8;
+        }
+
+        .evite-details-line {
+            margin: 3px 0;
+        }
+
+        .evite-details-label {
+            font-style: italic;
+            color: #a08888;
+        }
+
+        /* Description quote */
+        .evite-description {
+            position: relative;
+            z-index: 1;
+            margin: 20px 15px;
+            padding: 15px 20px;
+            background: rgba(248, 232, 232, 0.3);
+            border-left: 3px solid #d8b8b8;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .evite-description-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.95rem;
+            font-style: italic;
+            color: #806868;
+            line-height: 1.7;
+            margin: 0;
+        }
+
+        /* RSVP Section */
+        .evite-rsvp {
+            background: linear-gradient(180deg, #fef8f5 0%, #fffaf8 100%);
+            padding: 25px 20px;
+            border-top: 1px solid #f0e0e0;
+            position: relative;
+        }
+
+        .evite-rsvp::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #d4b8b8, transparent);
+        }
+
+        .evite-rsvp-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            font-style: italic;
+            text-align: center;
+            color: #a08080;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+
+        /* Response Options - Elegant style */
+        .evite-response-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .evite-response-option {
+            cursor: pointer;
+        }
+
+        .evite-response-option input {
+            display: none;
+        }
+
+        .evite-response-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 18px 12px;
+            border: 1px solid #e8d4d4;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            background: #fffcfa;
+        }
+
+        .evite-response-card:hover {
+            border-color: #d4a8a8;
+            background: #fef8f5;
+        }
+
+        .evite-response-option input:checked + .evite-response-card.response-yes {
+            border-color: #a8c9a8;
+            background: linear-gradient(180deg, #f8fdf8 0%, #f0f8f0 100%);
+            box-shadow: 0 4px 15px rgba(140, 180, 140, 0.15);
+        }
+
+        .evite-response-option input:checked + .evite-response-card.response-no {
+            border-color: #d4a8a8;
+            background: linear-gradient(180deg, #fef8f8 0%, #fdf0f0 100%);
+            box-shadow: 0 4px 15px rgba(180, 140, 140, 0.15);
+        }
+
+        .evite-response-emoji {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        .evite-response-text {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.9rem;
+            font-style: italic;
+            color: #806868;
+            text-align: center;
+        }
+
+        /* Form Fields - Vintage style */
+        .evite-form-group {
+            margin-bottom: 15px;
+        }
+
+        .evite-form-group label {
+            display: block;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.8rem;
+            font-style: italic;
+            color: #a08888;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .evite-form-group input,
+        .evite-form-group select,
+        .evite-form-group textarea {
+            width: 100%;
+            padding: 12px 14px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            border: 1px solid #e8d8d8;
+            border-radius: 6px;
+            background: #fffcfa;
+            color: #605050;
+            transition: all 0.2s ease;
+        }
+
+        .evite-form-group input:focus,
+        .evite-form-group select:focus,
+        .evite-form-group textarea:focus {
+            outline: none;
+            border-color: #d4b8b8;
+            box-shadow: 0 0 0 3px rgba(200, 160, 160, 0.1);
+            background: #fff;
+        }
+
+        .evite-form-group input::placeholder,
+        .evite-form-group textarea::placeholder {
+            color: #c0b0b0;
+            font-style: italic;
+        }
+
+        .evite-form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .evite-form-hint {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.7rem;
+            font-style: italic;
+            color: #b8a0a0;
+            margin-top: 4px;
+        }
+
+        .evite-guest-count {
+            display: none;
+        }
+
+        .evite-guest-count.show {
+            display: block;
+        }
+
+        /* Submit Button - Elegant */
+        .evite-submit {
+            width: 100%;
+            padding: 14px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1rem;
+            font-style: italic;
+            font-weight: 500;
+            color: #fff;
+            background: linear-gradient(135deg, #c49090 0%, #b87878 100%);
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+            margin-top: 10px;
+        }
+
+        .evite-submit:hover:not(:disabled) {
+            background: linear-gradient(135deg, #b87878 0%, #a06868 100%);
+            box-shadow: 0 6px 20px rgba(180, 120, 120, 0.25);
+        }
+
+        .evite-submit:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        /* Message */
+        .evite-message {
+            padding: 10px 14px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .evite-message.error {
+            background: #fef0f0;
+            color: #a05050;
+            border: 1px solid #e8c0c0;
+        }
+
+        .evite-message.success {
+            background: #f0fef0;
+            color: #508050;
+            border: 1px solid #c0e8c0;
+        }
+
+        /* Success State */
+        .evite-success {
+            text-align: center;
+            padding: 40px 25px;
+        }
+
+        .evite-success-icon {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #a8c9a8, #90b890);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2rem;
+            color: white;
+            animation: successPop 0.5s ease;
+        }
+
+        @keyframes successPop {
+            0% { transform: scale(0); }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .evite-success h2 {
+            font-family: 'Great Vibes', cursive;
+            font-size: 2rem;
+            color: #9a7070;
+            margin-bottom: 10px;
+        }
+
+        .evite-success p {
+            font-family: 'Cormorant Garamond', serif;
+            color: #808080;
+            font-style: italic;
+            margin-bottom: 20px;
+        }
+
+        .evite-success-details {
+            background: #fef8f5;
+            padding: 18px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: left;
+            border: 1px solid #f0e0e0;
+        }
+
+        .evite-success-details p {
+            font-family: 'Cormorant Garamond', serif;
+            margin: 6px 0;
+            color: #706060;
+            font-size: 0.95rem;
+            font-style: normal;
+        }
+
+        .evite-success-details strong {
+            color: #505050;
+        }
+
+        .evite-calendar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            font-family: 'Cormorant Garamond', serif;
+            background: #fffcfa;
+            border: 1px solid #d4b8b8;
+            border-radius: 6px;
+            color: #a08080;
+            font-style: italic;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .evite-calendar-btn:hover {
+            background: #b87878;
+            border-color: #b87878;
+            color: white;
+        }
+
+        /* Already Responded */
+        .evite-responded {
+            text-align: center;
+            padding: 30px 25px;
+        }
+
+        .evite-responded-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .evite-responded h2 {
+            font-family: 'Great Vibes', cursive;
+            font-size: 1.8rem;
+            color: #9a7070;
+            margin-bottom: 10px;
+        }
+
+        .evite-change-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-family: 'Cormorant Garamond', serif;
+            background: transparent;
+            border: 1px solid #e0d0d0;
+            border-radius: 6px;
+            color: #a08888;
+            font-style: italic;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .evite-change-btn:hover {
+            border-color: #c49090;
+            color: #906868;
+        }
+
+        /* Loading */
+        .evite-loading {
+            text-align: center;
+            padding: 50px 25px;
+        }
+
+        .evite-spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #f0e0e0;
+            border-top-color: #c49090;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        .evite-loading p {
+            font-family: 'Cormorant Garamond', serif;
+            font-style: italic;
+            color: #a08888;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Error State */
+        .evite-error {
+            text-align: center;
+            padding: 40px 25px;
+        }
+
+        .evite-error-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+
+        .evite-error h2 {
+            font-family: 'Cormorant Garamond', serif;
+            color: #806868;
+        }
+
+        .evite-error p {
+            font-family: 'Cormorant Garamond', serif;
+            color: #a08888;
+            font-style: italic;
+        }
+
+        /* Footer */
+        .evite-footer {
+            text-align: center;
+            padding: 12px;
+            background: #fef8f5;
+            border-top: 1px solid #f0e4e4;
+        }
+
+        .evite-footer p {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 0.7rem;
+            font-style: italic;
+            color: #c0b0b0;
+            letter-spacing: 0.5px;
+        }
+
+        /* Decorative corner roses */
+        .evite-rose {
+            position: absolute;
+            opacity: 0.15;
+            pointer-events: none;
+        }
+
+        .evite-rose.top-left {
+            top: 15px;
+            left: 15px;
+            font-size: 1.5rem;
+        }
+
+        .evite-rose.top-right {
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+        }
+
+        .evite-rose.bottom-left {
+            bottom: 15px;
+            left: 15px;
+            font-size: 1.5rem;
+        }
+
+        .evite-rose.bottom-right {
+            bottom: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .evite-page {
+                padding: 10px;
+            }
+
+            .evite-title {
+                font-size: 2.2rem;
+            }
+
+            .evite-form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .evite-date-num {
+                font-size: 2rem;
+                padding: 0 10px;
+            }
+
+            .evite-frame {
+                margin: 8px;
+                padding: 6px;
+            }
+
+            .evite-oval-frame {
+                padding: 20px 15px;
+            }
+        }
+
+        /* =====================================================
+           MODERN DARK / ELEGANCE TEMPLATE
+           ===================================================== */
+        .template-modern-dark.evite-page {
+            background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 50%, #16213e 100%);
+        }
+
+        .template-modern-dark .evite-card {
+            background: linear-gradient(180deg, #1e1e32 0%, #252540 100%);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(212, 175, 55, 0.1);
+        }
+
+        .template-modern-dark .evite-border {
+            background: none;
+            border: 2px solid rgba(212, 175, 55, 0.2);
+            margin: 4px;
+            border-radius: 6px;
+        }
+
+        .template-modern-dark .evite-frame {
+            background: transparent;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            padding: 12px;
+        }
+
+        .template-modern-dark .evite-frame::before {
+            display: none;
+        }
+
+        .template-modern-dark .evite-inner {
+            background: linear-gradient(180deg, rgba(30, 30, 50, 0.9) 0%, rgba(37, 37, 64, 0.9) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .template-modern-dark .evite-oval-frame::before {
+            border-color: rgba(212, 175, 55, 0.2);
+        }
+
+        .template-modern-dark .evite-preheader {
+            color: #d4af37;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-family: 'Inter', sans-serif;
+            font-style: normal;
+            font-size: 0.7rem;
+        }
+
+        .template-modern-dark .evite-title {
+            font-family: 'Playfair Display', serif;
+            color: #ffffff;
+            text-shadow: 0 2px 10px rgba(212, 175, 55, 0.2);
+        }
+
+        .template-modern-dark .evite-subtitle {
+            color: #888899;
+        }
+
+        .template-modern-dark .evite-divider-line {
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+        }
+
+        .template-modern-dark .evite-divider-icon {
+            color: #d4af37;
+        }
+
+        .template-modern-dark .evite-honoree-label {
+            color: #d4af37;
+        }
+
+        .template-modern-dark .evite-honoree-name {
+            font-family: 'Playfair Display', serif;
+            color: #ffffff;
+        }
+
+        .template-modern-dark .evite-date-day,
+        .template-modern-dark .evite-date-month {
+            color: #d4af37;
+        }
+
+        .template-modern-dark .evite-date-num {
+            color: #ffffff;
+            border-color: rgba(212, 175, 55, 0.3);
+        }
+
+        .template-modern-dark .evite-details {
+            color: #aaaabc;
+        }
+
+        .template-modern-dark .evite-details-label {
+            color: #888899;
+        }
+
+        .template-modern-dark .evite-description {
+            background: rgba(212, 175, 55, 0.05);
+            border-left-color: #d4af37;
+        }
+
+        .template-modern-dark .evite-description-text {
+            color: #9999aa;
+        }
+
+        .template-modern-dark .evite-rose {
+            color: #d4af37;
+        }
+
+        .template-modern-dark .evite-rsvp {
+            background: linear-gradient(180deg, #1a1a2e 0%, #1e1e32 100%);
+            border-top-color: rgba(212, 175, 55, 0.15);
+        }
+
+        .template-modern-dark .evite-rsvp::before {
+            background: linear-gradient(90deg, transparent, #d4af37, transparent);
+        }
+
+        .template-modern-dark .evite-rsvp-title {
+            color: #888899;
+            font-family: 'Inter', sans-serif;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 0.8rem;
+        }
+
+        .template-modern-dark .evite-response-card {
+            background: rgba(30, 30, 50, 0.5);
+            border-color: rgba(212, 175, 55, 0.2);
+        }
+
+        .template-modern-dark .evite-response-card:hover {
+            border-color: #d4af37;
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .template-modern-dark .evite-response-option input:checked + .evite-response-card.response-yes {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.1);
+        }
+
+        .template-modern-dark .evite-response-option input:checked + .evite-response-card.response-no {
+            border-color: #f87171;
+            background: rgba(248, 113, 113, 0.1);
+        }
+
+        .template-modern-dark .evite-response-text {
+            color: #ccccdd;
+            font-family: 'Inter', sans-serif;
+            font-style: normal;
+        }
+
+        .template-modern-dark .evite-form-group label {
+            color: #888899;
+            font-family: 'Inter', sans-serif;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.7rem;
+        }
+
+        .template-modern-dark .evite-form-group input,
+        .template-modern-dark .evite-form-group select,
+        .template-modern-dark .evite-form-group textarea {
+            background: rgba(20, 20, 35, 0.8);
+            border-color: rgba(212, 175, 55, 0.2);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .template-modern-dark .evite-form-group input:focus,
+        .template-modern-dark .evite-form-group select:focus,
+        .template-modern-dark .evite-form-group textarea:focus {
+            border-color: #d4af37;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+            background: rgba(30, 30, 50, 0.9);
+        }
+
+        .template-modern-dark .evite-form-group input::placeholder,
+        .template-modern-dark .evite-form-group textarea::placeholder {
+            color: #555566;
+        }
+
+        .template-modern-dark .evite-form-hint {
+            color: #666677;
+        }
+
+        .template-modern-dark .evite-submit {
+            background: linear-gradient(135deg, #d4af37 0%, #b8962e 100%);
+            color: #0f0f1a;
+            font-family: 'Inter', sans-serif;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+
+        .template-modern-dark .evite-submit:hover:not(:disabled) {
+            background: linear-gradient(135deg, #e5c04a 0%, #d4af37 100%);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.3);
+        }
+
+        .template-modern-dark .evite-footer {
+            background: rgba(15, 15, 26, 0.8);
+            border-top-color: rgba(212, 175, 55, 0.1);
+        }
+
+        .template-modern-dark .evite-footer p {
+            color: #555566;
+        }
+
+        .template-modern-dark .evite-success-icon {
+            background: linear-gradient(135deg, #d4af37, #b8962e);
+        }
+
+        .template-modern-dark .evite-success h2 {
+            font-family: 'Playfair Display', serif;
+            color: #ffffff;
+        }
+
+        .template-modern-dark .evite-success p {
+            color: #888899;
+        }
+
+        .template-modern-dark .evite-success-details {
+            background: rgba(20, 20, 35, 0.8);
+            border-color: rgba(212, 175, 55, 0.15);
+        }
+
+        .template-modern-dark .evite-success-details p {
+            color: #9999aa;
+        }
+
+        .template-modern-dark .evite-success-details strong {
+            color: #d4af37;
+        }
+
+        .template-modern-dark .evite-calendar-btn {
+            background: transparent;
+            border-color: #d4af37;
+            color: #d4af37;
+        }
+
+        .template-modern-dark .evite-calendar-btn:hover {
+            background: #d4af37;
+            color: #0f0f1a;
+        }
+
+        .template-modern-dark .evite-loading p,
+        .template-modern-dark .evite-error p {
+            color: #888899;
+        }
+
+        .template-modern-dark .evite-spinner {
+            border-color: rgba(212, 175, 55, 0.2);
+            border-top-color: #d4af37;
+        }
+
+        /* =====================================================
+           GARDEN PARTY TEMPLATE
+           ===================================================== */
+        .template-garden-party.evite-page {
+            background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 50%, #e8f5e9 100%);
+        }
+
+        .template-garden-party .evite-card {
+            background: #fffef9;
+            box-shadow: 0 20px 60px rgba(74, 124, 89, 0.12);
+        }
+
+        .template-garden-party .evite-frame {
+            background:
+                repeating-linear-gradient(
+                    0deg,
+                    #fdfdf8 0px,
+                    #fdfdf8 6px,
+                    #e8f0e4 6px,
+                    #e8f0e4 12px
+                );
+            border-color: #c8d8c4;
+        }
+
+        .template-garden-party .evite-frame::before {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 60 60'%3E%3Cg fill='%234a7c59' fill-opacity='0.1'%3E%3Cpath d='M10 30 Q15 20 20 30 Q25 40 30 30' stroke='%234a7c59' stroke-width='0.5' fill='none'/%3E%3Ccircle cx='35' cy='25' r='2'/%3E%3Ccircle cx='45' cy='35' r='2'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .template-garden-party .evite-inner {
+            background: linear-gradient(180deg, #fffef9 0%, #fcfdf7 100%);
+            border-color: #d8e4d4;
+        }
+
+        .template-garden-party .evite-oval-frame::before {
+            border-color: #a8c4a0;
+        }
+
+        .template-garden-party .evite-preheader {
+            color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-title {
+            color: #2d5a3d;
+        }
+
+        .template-garden-party .evite-subtitle {
+            color: #688868;
+        }
+
+        .template-garden-party .evite-divider-line {
+            background: linear-gradient(90deg, transparent, #8ab88a, transparent);
+        }
+
+        .template-garden-party .evite-divider-icon {
+            color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-honoree-label {
+            color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-honoree-name {
+            color: #2d5a3d;
+        }
+
+        .template-garden-party .evite-date-day,
+        .template-garden-party .evite-date-month {
+            color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-date-num {
+            color: #2d5a3d;
+            border-color: #c8d8c4;
+        }
+
+        .template-garden-party .evite-details {
+            color: #4a6848;
+        }
+
+        .template-garden-party .evite-details-label {
+            color: #688868;
+        }
+
+        .template-garden-party .evite-description {
+            background: rgba(200, 232, 200, 0.2);
+            border-left-color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-description-text {
+            color: #4a6848;
+        }
+
+        .template-garden-party .evite-rose {
+            color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-rsvp {
+            background: linear-gradient(180deg, #f8fdf5 0%, #fdfef9 100%);
+            border-top-color: #d8e8d4;
+        }
+
+        .template-garden-party .evite-rsvp::before {
+            background: linear-gradient(90deg, transparent, #8ab88a, transparent);
+        }
+
+        .template-garden-party .evite-rsvp-title {
+            color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-response-card {
+            border-color: #d4e4d0;
+            background: #fdfef9;
+        }
+
+        .template-garden-party .evite-response-card:hover {
+            border-color: #8ab88a;
+            background: #f8fdf5;
+        }
+
+        .template-garden-party .evite-response-option input:checked + .evite-response-card.response-yes {
+            border-color: #5a8c5a;
+            background: linear-gradient(180deg, #f0faf0 0%, #e8f5e8 100%);
+        }
+
+        .template-garden-party .evite-response-option input:checked + .evite-response-card.response-no {
+            border-color: #c49090;
+            background: linear-gradient(180deg, #fef8f8 0%, #fdf0f0 100%);
+        }
+
+        .template-garden-party .evite-response-text {
+            color: #4a6848;
+        }
+
+        .template-garden-party .evite-form-group label {
+            color: #5a8c5a;
+        }
+
+        .template-garden-party .evite-form-group input,
+        .template-garden-party .evite-form-group select,
+        .template-garden-party .evite-form-group textarea {
+            border-color: #d4e4d0;
+            background: #fdfef9;
+            color: #3a5838;
+        }
+
+        .template-garden-party .evite-form-group input:focus,
+        .template-garden-party .evite-form-group select:focus,
+        .template-garden-party .evite-form-group textarea:focus {
+            border-color: #8ab88a;
+            box-shadow: 0 0 0 3px rgba(90, 140, 90, 0.1);
+        }
+
+        .template-garden-party .evite-form-group input::placeholder,
+        .template-garden-party .evite-form-group textarea::placeholder {
+            color: #a8c0a8;
+        }
+
+        .template-garden-party .evite-form-hint {
+            color: #88a888;
+        }
+
+        .template-garden-party .evite-submit {
+            background: linear-gradient(135deg, #5a8c5a 0%, #4a7c49 100%);
+        }
+
+        .template-garden-party .evite-submit:hover:not(:disabled) {
+            background: linear-gradient(135deg, #4a7c49 0%, #3a6c39 100%);
+            box-shadow: 0 6px 20px rgba(74, 124, 73, 0.25);
+        }
+
+        .template-garden-party .evite-footer {
+            background: #f8fdf5;
+            border-top-color: #e8f0e4;
+        }
+
+        .template-garden-party .evite-footer p {
+            color: #a8c0a8;
+        }
+
+        .template-garden-party .evite-success-icon {
+            background: linear-gradient(135deg, #5a8c5a, #4a7c49);
+        }
+
+        .template-garden-party .evite-success h2 {
+            color: #2d5a3d;
+        }
+
+        /* =====================================================
+           CLASSIC FORMAL TEMPLATE
+           ===================================================== */
+        .template-classic-formal.evite-page {
+            background: linear-gradient(135deg, #f5f5f5 0%, #ffffff 50%, #f8f8f8 100%);
+        }
+
+        .template-classic-formal .evite-card {
+            background: #ffffff;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .template-classic-formal .evite-frame {
+            background: #ffffff;
+            border: 2px solid #2c2c2c;
+            padding: 16px;
+        }
+
+        .template-classic-formal .evite-frame::before {
+            display: none;
+        }
+
+        .template-classic-formal .evite-inner {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+        }
+
+        .template-classic-formal .evite-oval-frame::before {
+            border: 1px solid #2c2c2c;
+            border-radius: 0;
+            left: 10%;
+            right: 10%;
+        }
+
+        .template-classic-formal .evite-preheader {
+            color: #666666;
+            font-family: 'Cormorant Garamond', serif;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 0.7rem;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-title {
+            font-family: 'Playfair Display', serif;
+            color: #2c2c2c;
+            font-weight: 400;
+        }
+
+        .template-classic-formal .evite-subtitle {
+            color: #666666;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-divider-line {
+            background: #2c2c2c;
+            height: 2px;
+            width: 60px;
+        }
+
+        .template-classic-formal .evite-divider-icon {
+            display: none;
+        }
+
+        .template-classic-formal .evite-honoree-label {
+            color: #666666;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+        }
+
+        .template-classic-formal .evite-honoree-name {
+            font-family: 'Playfair Display', serif;
+            color: #2c2c2c;
+        }
+
+        .template-classic-formal .evite-date-day,
+        .template-classic-formal .evite-date-month {
+            color: #666666;
+            letter-spacing: 3px;
+        }
+
+        .template-classic-formal .evite-date-num {
+            color: #2c2c2c;
+            border-color: #2c2c2c;
+            font-weight: 400;
+        }
+
+        .template-classic-formal .evite-details {
+            color: #444444;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-details-label {
+            color: #666666;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-description {
+            background: #f8f8f8;
+            border-left: 2px solid #2c2c2c;
+        }
+
+        .template-classic-formal .evite-description-text {
+            color: #444444;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-rose {
+            display: none;
+        }
+
+        .template-classic-formal .evite-rsvp {
+            background: #fafafa;
+            border-top: 2px solid #2c2c2c;
+        }
+
+        .template-classic-formal .evite-rsvp::before {
+            display: none;
+        }
+
+        .template-classic-formal .evite-rsvp-title {
+            color: #666666;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.75rem;
+        }
+
+        .template-classic-formal .evite-response-card {
+            border: 2px solid #e0e0e0;
+            background: #ffffff;
+        }
+
+        .template-classic-formal .evite-response-card:hover {
+            border-color: #2c2c2c;
+        }
+
+        .template-classic-formal .evite-response-option input:checked + .evite-response-card.response-yes {
+            border-color: #2c2c2c;
+            background: #f8f8f8;
+        }
+
+        .template-classic-formal .evite-response-option input:checked + .evite-response-card.response-no {
+            border-color: #999999;
+            background: #f8f8f8;
+        }
+
+        .template-classic-formal .evite-response-emoji {
+            filter: grayscale(100%);
+        }
+
+        .template-classic-formal .evite-response-text {
+            color: #2c2c2c;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.8rem;
+        }
+
+        .template-classic-formal .evite-form-group label {
+            color: #666666;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 0.7rem;
+        }
+
+        .template-classic-formal .evite-form-group input,
+        .template-classic-formal .evite-form-group select,
+        .template-classic-formal .evite-form-group textarea {
+            border: 2px solid #e0e0e0;
+            background: #ffffff;
+            color: #2c2c2c;
+        }
+
+        .template-classic-formal .evite-form-group input:focus,
+        .template-classic-formal .evite-form-group select:focus,
+        .template-classic-formal .evite-form-group textarea:focus {
+            border-color: #2c2c2c;
+            box-shadow: none;
+        }
+
+        .template-classic-formal .evite-form-group input::placeholder,
+        .template-classic-formal .evite-form-group textarea::placeholder {
+            color: #999999;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-form-hint {
+            color: #999999;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-submit {
+            background: #2c2c2c;
+            font-style: normal;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 0.85rem;
+        }
+
+        .template-classic-formal .evite-submit:hover:not(:disabled) {
+            background: #444444;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .template-classic-formal .evite-footer {
+            background: #ffffff;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .template-classic-formal .evite-footer p {
+            color: #999999;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-success-icon {
+            background: #2c2c2c;
+        }
+
+        .template-classic-formal .evite-success h2 {
+            font-family: 'Playfair Display', serif;
+            color: #2c2c2c;
+        }
+
+        .template-classic-formal .evite-success p {
+            color: #666666;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-success-details {
+            background: #f8f8f8;
+            border: 1px solid #e0e0e0;
+        }
+
+        .template-classic-formal .evite-calendar-btn {
+            border-color: #2c2c2c;
+            color: #2c2c2c;
+            font-style: normal;
+        }
+
+        .template-classic-formal .evite-calendar-btn:hover {
+            background: #2c2c2c;
+            color: #ffffff;
+        }
+
+        /* Default template is shabby-chic - no class needed */
+        .template-shabby-chic.evite-page {
+            /* All default styles already applied */
+        }
+    </style>
+</head>
+<body class="evite-page">
+    <div class="evite-container">
+        <!-- Loading State -->
+        <div id="loading" class="evite-card">
+            <div class="evite-frame">
+                <div class="evite-inner">
+                    <div class="evite-loading">
+                        <div class="evite-spinner"></div>
+                        <p>Opening your invitation...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" class="evite-card" style="display: none;">
+            <div class="evite-frame">
+                <div class="evite-inner">
+                    <div class="evite-error">
+                        <div class="evite-error-icon">🌸</div>
+                        <h2>Invitation Not Found</h2>
+                        <p>This invitation link is no longer available.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Already Responded State -->
+        <div id="already-responded" class="evite-card" style="display: none;">
+            <div class="evite-frame">
+                <div class="evite-inner">
+                    <div class="evite-oval-frame">
+                        <div class="evite-header">
+                            <div class="evite-preheader">you're invited to</div>
+                            <h1 id="responded-event-title" class="evite-title"></h1>
+                        </div>
+                    </div>
+                    <div class="evite-responded">
+                        <div id="response-icon" class="evite-responded-icon">🌷</div>
+                        <h2 id="response-title">Thank You!</h2>
+                        <p id="response-message"></p>
+                        <div class="evite-success-details">
+                            <p><strong>Your Response:</strong> <span id="your-response"></span></p>
+                            <p id="your-guests-row"><strong>Guests:</strong> <span id="your-guests"></span></p>
+                        </div>
+                        <button id="change-response-btn" class="evite-change-btn">Change Response</button>
+                    </div>
+                </div>
+            </div>
+            <div class="evite-footer">
+                <p>✿ Powered by Synathrozo ✿</p>
+            </div>
+        </div>
+
+        <!-- Main Invitation Card -->
+        <div id="rsvp-form-container" class="evite-card" style="display: none;">
+            <div class="evite-border"></div>
+            <div class="evite-frame">
+                <div class="evite-inner">
+                    <span class="evite-rose top-left">🌹</span>
+                    <span class="evite-rose top-right">🌹</span>
+                    <span class="evite-rose bottom-left">🌹</span>
+                    <span class="evite-rose bottom-right">🌹</span>
+
+                    <div class="evite-oval-frame">
+                        <!-- Header -->
+                        <div class="evite-header">
+                            <div class="evite-preheader">join us for</div>
+                            <h1 id="event-title" class="evite-title"></h1>
+                        </div>
+
+                        <div class="evite-divider">
+                            <span class="evite-divider-line"></span>
+                            <span class="evite-divider-icon">✿</span>
+                            <span class="evite-divider-line"></span>
+                        </div>
+
+                        <!-- Guest Name (if personalized) -->
+                        <div id="guest-name-section" class="evite-honoree" style="display: none;">
+                            <div class="evite-honoree-label">honoring</div>
+                            <div id="invited-guest-name" class="evite-honoree-name"></div>
+                        </div>
+
+                        <!-- Date Display -->
+                        <div class="evite-date-display">
+                            <div class="evite-date-col">
+                                <div id="event-day" class="evite-date-day">SAT</div>
+                            </div>
+                            <div class="evite-date-col">
+                                <div id="event-date-num" class="evite-date-num">10</div>
+                            </div>
+                            <div class="evite-date-col">
+                                <div id="event-month" class="evite-date-month">JAN</div>
+                            </div>
+                        </div>
+
+                        <!-- Event Details -->
+                        <div class="evite-details">
+                            <div class="evite-details-line">
+                                <span id="event-time"></span>
+                            </div>
+                            <div class="evite-details-line">
+                                <span id="event-location"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div id="event-description-container" class="evite-description" style="display: none;">
+                        <p id="event-description" class="evite-description-text"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RSVP Form -->
+            <div class="evite-rsvp">
+                <div class="evite-rsvp-title">Kindly respond by replying below</div>
+
+                <form id="rsvp-form">
+                    <div id="message" class="evite-message" style="display: none;"></div>
+
+                    <!-- Response Options -->
+                    <div class="evite-response-options">
+                        <label class="evite-response-option">
+                            <input type="radio" name="attending" value="yes" required>
+                            <span class="evite-response-card response-yes">
+                                <span class="evite-response-emoji">🌸</span>
+                                <span class="evite-response-text">Joyfully Accepts</span>
+                            </span>
+                        </label>
+                        <label class="evite-response-option">
+                            <input type="radio" name="attending" value="no" required>
+                            <span class="evite-response-card response-no">
+                                <span class="evite-response-emoji">🥀</span>
+                                <span class="evite-response-text">Regretfully Declines</span>
+                            </span>
+                        </label>
+                    </div>
+
+                    <!-- Guest Details -->
+                    <div class="evite-form-group">
+                        <label for="name">Your Name</label>
+                        <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                    </div>
+
+                    <div class="evite-form-row">
+                        <div class="evite-form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
+                            <div class="evite-form-hint">For event updates</div>
+                        </div>
+                        <div class="evite-form-group">
+                            <label for="email">Email (optional)</label>
+                            <input type="email" id="email" name="email" placeholder="your@email.com">
+                        </div>
+                    </div>
+
+                    <div id="guest-count-section" class="evite-form-group evite-guest-count">
+                        <label for="guest-count">Number of Guests Attending</label>
+                        <select id="guest-count" name="guest-count">
+                            <option value="1">Just myself</option>
+                            <option value="2">2 guests</option>
+                            <option value="3">3 guests</option>
+                            <option value="4">4 guests</option>
+                            <option value="5">5 guests</option>
+                            <option value="6">6+ guests</option>
+                        </select>
+                    </div>
+
+                    <div class="evite-form-group">
+                        <label for="rsvp-message">Message to Host (optional)</label>
+                        <textarea id="rsvp-message" name="message" rows="2" placeholder="Dietary needs, well wishes, or questions..." maxlength="500"></textarea>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="evite-submit">
+                        Send Response
+                    </button>
+                </form>
+            </div>
+
+            <div class="evite-footer">
+                <p>✿ Powered by Synathrozo ✿</p>
+            </div>
+        </div>
+
+        <!-- Success State -->
+        <div id="success-state" class="evite-card" style="display: none;">
+            <div class="evite-frame">
+                <div class="evite-inner">
+                    <div class="evite-success">
+                        <div class="evite-success-icon">✓</div>
+                        <h2>Thank You!</h2>
+                        <p id="success-message">Your response has been received.</p>
+                        <div class="evite-success-details">
+                            <p><strong>Event:</strong> <span id="success-event"></span></p>
+                            <p><strong>Date:</strong> <span id="success-date"></span></p>
+                            <p><strong>Your Response:</strong> <span id="success-response"></span></p>
+                        </div>
+                        <button id="add-to-calendar" class="evite-calendar-btn" style="display: none;">
+                            📅 Add to Calendar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="evite-footer">
+                <p>✿ Powered by Synathrozo ✿</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/invitations.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/main.js"></script>
+    <script>
+        let invitation = null;
+        let eventData = null;
+        let token = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            token = Utils.getUrlParam('token');
+            const eventId = Utils.getUrlParam('event');
+
+            if (token) {
+                await loadInvitationByToken(token);
+            } else if (eventId) {
+                await loadEventForPublicRSVP(eventId);
+            } else {
+                showError();
+            }
+        });
+
+        // Load invitation by token
+        async function loadInvitationByToken(token) {
+            const result = await Invitations.getByToken(token);
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (!result.success || !result.data) {
+                showError();
+                return;
+            }
+
+            invitation = result.data;
+            eventData = invitation.events;
+
+            await Invitations.markOpened(token);
+
+            if (invitation.status === 'accepted' || invitation.status === 'declined') {
+                showAlreadyResponded();
+            } else {
+                showRSVPForm();
+            }
+        }
+
+        // Load event for public RSVP
+        async function loadEventForPublicRSVP(eventId) {
+            const result = await Events.getById(eventId);
+
+            document.getElementById('loading').style.display = 'none';
+
+            if (!result.success || !result.data) {
+                showError();
+                return;
+            }
+
+            eventData = result.data;
+            invitation = null;
+            token = null;
+
+            showRSVPForm();
+        }
+
+        // Show already responded state
+        function showAlreadyResponded() {
+            // Apply the event's template
+            applyTemplate(eventData.template);
+
+            document.getElementById('responded-event-title').textContent = eventData.title;
+
+            const isAttending = invitation.status === 'accepted';
+            document.getElementById('response-icon').textContent = isAttending ? '🌷' : '🌸';
+            document.getElementById('response-title').textContent = isAttending
+                ? "You're Attending!"
+                : "Response Received";
+            document.getElementById('response-message').textContent = isAttending
+                ? "We can't wait to see you there!"
+                : "Thank you for letting us know.";
+            document.getElementById('your-response').textContent = isAttending ? 'Attending' : 'Not Attending';
+
+            if (isAttending && invitation.guest_count > 1) {
+                document.getElementById('your-guests').textContent = invitation.guest_count;
+                document.getElementById('your-guests-row').style.display = 'block';
+            } else {
+                document.getElementById('your-guests-row').style.display = 'none';
+            }
+
+            document.getElementById('change-response-btn').addEventListener('click', () => {
+                document.getElementById('already-responded').style.display = 'none';
+                showRSVPForm();
+                if (invitation.name) document.getElementById('name').value = invitation.name;
+                if (invitation.phone) document.getElementById('phone').value = invitation.phone;
+                if (invitation.email) document.getElementById('email').value = invitation.email;
+            });
+
+            document.getElementById('already-responded').style.display = 'block';
+        }
+
+        // Apply template styling
+        function applyTemplate(templateId) {
+            const body = document.body;
+            body.className = 'evite-page'; // Reset classes
+            body.classList.add(`template-${templateId || 'shabby-chic'}`);
+        }
+
+        // Show RSVP form
+        function showRSVPForm() {
+            // Apply the event's template
+            applyTemplate(eventData.template);
+
+            document.title = `You're Invited: ${eventData.title}`;
+
+            document.getElementById('event-title').textContent = eventData.title;
+
+            // Parse and display date
+            const date = new Date(eventData.event_date);
+            const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+
+            document.getElementById('event-day').textContent = days[date.getDay()];
+            document.getElementById('event-date-num').textContent = date.getDate();
+            document.getElementById('event-month').textContent = months[date.getMonth()];
+
+            // Time
+            const timeOptions = { hour: 'numeric', minute: '2-digit', hour12: true };
+            document.getElementById('event-time').textContent = 'at ' + date.toLocaleTimeString('en-US', timeOptions).toLowerCase();
+
+            document.getElementById('event-location').textContent = eventData.location || 'Location to be announced';
+
+            if (eventData.description) {
+                document.getElementById('event-description').textContent = eventData.description;
+                document.getElementById('event-description-container').style.display = 'block';
+            }
+
+            // Show personalized guest name if available
+            if (invitation && invitation.name) {
+                document.getElementById('invited-guest-name').textContent = invitation.name;
+                document.getElementById('guest-name-section').style.display = 'block';
+                document.getElementById('name').value = invitation.name;
+            }
+
+            if (invitation && invitation.email) {
+                document.getElementById('email').value = invitation.email;
+            }
+
+            setupFormListeners();
+            document.getElementById('rsvp-form-container').style.display = 'block';
+        }
+
+        // Setup form listeners
+        function setupFormListeners() {
+            const attendingInputs = document.querySelectorAll('input[name="attending"]');
+            const guestCountSection = document.getElementById('guest-count-section');
+
+            attendingInputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    if (input.value === 'yes') {
+                        guestCountSection.classList.add('show');
+                    } else {
+                        guestCountSection.classList.remove('show');
+                    }
+                });
+            });
+
+            const phoneInput = document.getElementById('phone');
+            phoneInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 6) {
+                    value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
+                } else if (value.length >= 3) {
+                    value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+                }
+                e.target.value = value;
+            });
+
+            document.getElementById('rsvp-form').addEventListener('submit', handleSubmit);
+        }
+
+        // Handle form submission
+        async function handleSubmit(e) {
+            e.preventDefault();
+
+            const attending = document.querySelector('input[name="attending"]:checked')?.value === 'yes';
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const guestCount = attending ? parseInt(document.getElementById('guest-count').value) : 0;
+            const message = document.getElementById('rsvp-message').value.trim();
+            const messageEl = document.getElementById('message');
+            const submitBtn = document.getElementById('submit-btn');
+
+            messageEl.style.display = 'none';
+
+            if (!document.querySelector('input[name="attending"]:checked')) {
+                showFormMessage(messageEl, 'Please select your response', 'error');
+                return;
+            }
+
+            if (!name) {
+                showFormMessage(messageEl, 'Please enter your name', 'error');
+                return;
+            }
+
+            if (!phone || phone.replace(/\D/g, '').length < 10) {
+                showFormMessage(messageEl, 'Please enter a valid phone number', 'error');
+                return;
+            }
+
+            if (email && !Utils.isValidEmail(email)) {
+                showFormMessage(messageEl, 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+
+            let result;
+
+            if (token) {
+                result = await Invitations.respond(token, {
+                    name,
+                    phone: phone.replace(/\D/g, ''),
+                    email,
+                    attending,
+                    guest_count: guestCount,
+                    message
+                });
+            } else {
+                const createResult = await window.supabaseClient
+                    .from('invitations')
+                    .insert({
+                        event_id: eventData.id,
+                        name,
+                        phone: phone.replace(/\D/g, ''),
+                        email: email || null,
+                        status: attending ? 'accepted' : 'declined',
+                        guest_count: guestCount,
+                        message: message || null,
+                        responded_at: new Date().toISOString()
+                    })
+                    .select()
+                    .single();
+
+                result = createResult.error
+                    ? { success: false, error: createResult.error.message }
+                    : { success: true, data: createResult.data };
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Response';
+
+            if (result.success) {
+                showSuccess(attending, guestCount);
+            } else {
+                showFormMessage(messageEl, result.error || 'Failed to submit response', 'error');
+            }
+        }
+
+        function showFormMessage(el, msg, type) {
+            el.textContent = msg;
+            el.className = `evite-message ${type}`;
+            el.style.display = 'block';
+        }
+
+        // Show success state
+        function showSuccess(attending, guestCount) {
+            document.getElementById('rsvp-form-container').style.display = 'none';
+
+            document.getElementById('success-event').textContent = eventData.title;
+            document.getElementById('success-date').textContent = Events.formatDate(eventData.event_date);
+            document.getElementById('success-response').textContent = attending
+                ? `Joyfully Attending (${guestCount} guest${guestCount > 1 ? 's' : ''})`
+                : 'Regretfully Declined';
+
+            document.getElementById('success-message').textContent = attending
+                ? "We're so excited to celebrate with you!"
+                : "Thank you for letting us know. You'll be missed!";
+
+            if (attending) {
+                const calBtn = document.getElementById('add-to-calendar');
+                calBtn.style.display = 'inline-flex';
+                calBtn.addEventListener('click', () => addToCalendar(eventData));
+            }
+
+            document.getElementById('success-state').style.display = 'block';
+        }
+
+        // Show error state
+        function showError() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error-state').style.display = 'block';
+        }
+
+        // Add to calendar
+        function addToCalendar(event) {
+            const startDate = new Date(event.event_date);
+            const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000);
+
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'BEGIN:VEVENT',
+                `DTSTART:${formatDate(startDate)}`,
+                `DTEND:${formatDate(endDate)}`,
+                `SUMMARY:${event.title}`,
+                `DESCRIPTION:${event.description || ''}`,
+                `LOCATION:${event.location || ''}`,
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\r\n');
+
+            const blob = new Blob([icsContent], { type: 'text/calendar' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${event.title.replace(/[^a-z0-9]/gi, '_')}.ics`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
