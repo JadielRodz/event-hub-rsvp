@@ -187,8 +187,8 @@ const Invitations = {
 
     // Generate RSVP link for an invitation
     getRSVPLink(token) {
-        
-        return `${www.synathrozo.com}rsvp.html?token=${token}`;
+        const baseUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '');
+        return `${baseUrl}rsvp.html?token=${token}`;
     },
 
     // Format phone number for display
