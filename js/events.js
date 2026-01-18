@@ -50,13 +50,16 @@ const Events = {
             const user = await Auth.getCurrentUser();
             if (!user) throw new Error('User not authenticated');
 
+            // Convert datetime-local value to ISO string with timezone
+            const eventDate = new Date(eventData.event_date).toISOString();
+
             const { data, error } = await supabaseClient
                 .from('events')
                 .insert({
                     user_id: user.id,
                     title: eventData.title,
                     description: eventData.description,
-                    event_date: eventData.event_date,
+                    event_date: eventDate,
                     location: eventData.location,
                     template: eventData.template || 'shabby-chic'
                 })
@@ -114,10 +117,13 @@ const Events = {
             const user = await Auth.getCurrentUser();
             if (!user) throw new Error('User not authenticated');
 
+            // Convert datetime-local value to ISO string with timezone
+            const eventDate = new Date(eventData.event_date).toISOString();
+
             const updateFields = {
                 title: eventData.title,
                 description: eventData.description,
-                event_date: eventData.event_date,
+                event_date: eventDate,
                 location: eventData.location,
                 updated_at: new Date().toISOString()
             };
@@ -176,10 +182,16 @@ const Events = {
         });
     },
 
-    // Format date for input field
+    // Format date for input field (converts to local time for datetime-local input)
     formatDateForInput(dateString) {
         const date = new Date(dateString);
-        return date.toISOString().slice(0, 16);
+        // Get local date components
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
     }
 };
 
