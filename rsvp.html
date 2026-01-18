@@ -1756,6 +1756,12 @@
 
         // Show RSVP form
         function showRSVPForm() {
+            // Check if using custom image
+            if (eventData.template === 'custom' && eventData.custom_image_url) {
+                showCustomImageRSVP();
+                return;
+            }
+
             // Apply the event's template
             applyTemplate(eventData.template);
 
@@ -1796,6 +1802,257 @@
 
             setupFormListeners();
             document.getElementById('rsvp-form-container').style.display = 'block';
+        }
+
+        // Show custom image RSVP page
+        function showCustomImageRSVP() {
+            document.title = `You're Invited: ${eventData.title}`;
+
+            // Hide loading and template containers
+            document.getElementById('loading').style.display = 'none';
+
+            // Create custom image RSVP layout
+            const container = document.querySelector('.evite-container');
+
+            // Format date
+            const date = new Date(eventData.event_date);
+            const dateStr = date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            const timeStr = date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+
+            container.innerHTML = `
+                <div class="custom-invitation-container">
+                    <img src="${eventData.custom_image_url}" alt="${eventData.title}" class="custom-invitation-image">
+
+                    <div class="custom-rsvp-form">
+                        <div class="custom-event-details">
+                            <h3>${eventData.title}</h3>
+                            <p><strong>${dateStr}</strong> at ${timeStr}</p>
+                            <p>${eventData.location || 'Location to be announced'}</p>
+                            ${eventData.description ? `<p style="margin-top: 12px; font-style: italic;">${eventData.description}</p>` : ''}
+                        </div>
+
+                        <h2>RSVP</h2>
+                        <form id="custom-rsvp-form" class="form">
+                            <div id="custom-message" class="message" style="display: none;"></div>
+
+                            <div class="form-group">
+                                <label>Will you be attending?</label>
+                                <div style="display: flex; gap: 12px; margin-top: 8px;">
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="radio" name="custom-attending" value="yes" required>
+                                        <span>Yes, I'll be there!</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                        <input type="radio" name="custom-attending" value="no" required>
+                                        <span>Sorry, can't make it</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="custom-name">Your Name <span class="required">*</span></label>
+                                <input type="text" id="custom-name" name="name" required placeholder="Enter your full name" value="${invitation?.name || ''}">
+                            </div>
+
+                            <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div class="form-group">
+                                    <label for="custom-phone">Phone Number <span class="required">*</span></label>
+                                    <input type="tel" id="custom-phone" name="phone" required placeholder="(555) 123-4567" value="${invitation?.phone || ''}">
+                                </div>
+                                <div class="form-group">
+                                    <label for="custom-email">Email (optional)</label>
+                                    <input type="email" id="custom-email" name="email" placeholder="your@email.com" value="${invitation?.email || ''}">
+                                </div>
+                            </div>
+
+                            <div id="custom-guest-count-section" class="form-group" style="display: none;">
+                                <label for="custom-guest-count">Number of Guests Attending</label>
+                                <select id="custom-guest-count" name="guest-count">
+                                    <option value="1">Just myself</option>
+                                    <option value="2">2 guests</option>
+                                    <option value="3">3 guests</option>
+                                    <option value="4">4 guests</option>
+                                    <option value="5">5 guests</option>
+                                    <option value="6">6+ guests</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="custom-rsvp-message">Message to Host (optional)</label>
+                                <textarea id="custom-rsvp-message" name="message" rows="2" placeholder="Dietary needs, well wishes, or questions..." maxlength="500"></textarea>
+                            </div>
+
+                            <button type="submit" id="custom-submit-btn" class="btn btn-primary" style="width: 100%;">
+                                Send Response
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            // Setup custom form listeners
+            setupCustomFormListeners();
+        }
+
+        // Setup custom form listeners
+        function setupCustomFormListeners() {
+            const attendingInputs = document.querySelectorAll('input[name="custom-attending"]');
+            const guestCountSection = document.getElementById('custom-guest-count-section');
+
+            attendingInputs.forEach(input => {
+                input.addEventListener('change', () => {
+                    guestCountSection.style.display = input.value === 'yes' ? 'block' : 'none';
+                });
+            });
+
+            // Phone formatting
+            const phoneInput = document.getElementById('custom-phone');
+            phoneInput.addEventListener('input', (e) => {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length >= 6) {
+                    value = `(${value.slice(0,3)}) ${value.slice(3,6)}-${value.slice(6,10)}`;
+                } else if (value.length >= 3) {
+                    value = `(${value.slice(0,3)}) ${value.slice(3)}`;
+                }
+                e.target.value = value;
+            });
+
+            document.getElementById('custom-rsvp-form').addEventListener('submit', handleCustomSubmit);
+        }
+
+        // Handle custom form submission
+        async function handleCustomSubmit(e) {
+            e.preventDefault();
+
+            const attending = document.querySelector('input[name="custom-attending"]:checked')?.value === 'yes';
+            const name = document.getElementById('custom-name').value.trim();
+            const phone = document.getElementById('custom-phone').value.trim();
+            const email = document.getElementById('custom-email').value.trim();
+            const guestCount = attending ? parseInt(document.getElementById('custom-guest-count').value) : 0;
+            const message = document.getElementById('custom-rsvp-message').value.trim();
+            const messageEl = document.getElementById('custom-message');
+            const submitBtn = document.getElementById('custom-submit-btn');
+
+            messageEl.style.display = 'none';
+
+            if (!document.querySelector('input[name="custom-attending"]:checked')) {
+                showFormMessage(messageEl, 'Please select your response', 'error');
+                return;
+            }
+
+            if (!name) {
+                showFormMessage(messageEl, 'Please enter your name', 'error');
+                return;
+            }
+
+            if (!phone || phone.replace(/\D/g, '').length < 10) {
+                showFormMessage(messageEl, 'Please enter a valid phone number', 'error');
+                return;
+            }
+
+            if (email && !Utils.isValidEmail(email)) {
+                showFormMessage(messageEl, 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Sending...';
+
+            let result;
+
+            if (token) {
+                result = await Invitations.respond(token, {
+                    name,
+                    phone: phone.replace(/\D/g, ''),
+                    email,
+                    attending,
+                    guest_count: guestCount,
+                    message
+                });
+            } else {
+                const createResult = await window.supabaseClient
+                    .from('invitations')
+                    .insert({
+                        event_id: eventData.id,
+                        name,
+                        phone: phone.replace(/\D/g, ''),
+                        email: email || null,
+                        status: attending ? 'accepted' : 'declined',
+                        guest_count: guestCount,
+                        message: message || null,
+                        responded_at: new Date().toISOString()
+                    })
+                    .select()
+                    .single();
+
+                result = createResult.error
+                    ? { success: false, error: createResult.error.message }
+                    : { success: true, data: createResult.data };
+            }
+
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send Response';
+
+            if (result.success) {
+                showCustomSuccess(attending, guestCount);
+            } else {
+                showFormMessage(messageEl, result.error || 'Failed to submit response', 'error');
+            }
+        }
+
+        // Show custom success state
+        function showCustomSuccess(attending, guestCount) {
+            const container = document.querySelector('.custom-invitation-container');
+
+            // Generate registry links HTML for custom layout
+            let registryHtml = '';
+            if (eventData.registry_links && eventData.registry_links.length > 0) {
+                const introText = attending
+                    ? "The hosts have shared their gift registry:"
+                    : "No worries! You can still send them some love:";
+
+                const linksHtml = eventData.registry_links.map(link => `
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 10px 18px; background: #f0f0f0; border-radius: 6px; color: #333; text-decoration: none; margin: 4px; transition: background 0.2s;">
+                        🎁 ${link.name}
+                    </a>
+                `).join('');
+
+                registryHtml = `
+                    <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #eee;">
+                        <p style="color: #666; margin-bottom: 12px; font-style: italic;">${introText}</p>
+                        <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;">
+                            ${linksHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="custom-rsvp-form" style="text-align: center;">
+                    <div style="font-size: 4rem; margin-bottom: 16px;">${attending ? '🎉' : '💌'}</div>
+                    <h2 style="margin-bottom: 12px;">Thank You!</h2>
+                    <p style="color: #666; margin-bottom: 24px;">
+                        ${attending
+                            ? `We're so excited to celebrate with you! (${guestCount} guest${guestCount > 1 ? 's' : ''})`
+                            : "Thank you for letting us know. You'll be missed!"}
+                    </p>
+                    <div style="background: #f9fafb; padding: 16px; border-radius: 8px; text-align: left;">
+                        <p><strong>Event:</strong> ${eventData.title}</p>
+                        <p><strong>Date:</strong> ${Events.formatDate(eventData.event_date)}</p>
+                        <p><strong>Your Response:</strong> ${attending ? 'Attending' : 'Not Attending'}</p>
+                    </div>
+                    ${registryHtml}
+                </div>
+            `;
         }
 
         // Setup form listeners
@@ -1913,6 +2170,32 @@
             el.style.display = 'block';
         }
 
+        // Generate registry links HTML
+        function getRegistryLinksHTML(attending) {
+            if (!eventData.registry_links || eventData.registry_links.length === 0) {
+                return '';
+            }
+
+            const introText = attending
+                ? "The hosts have shared their gift registry:"
+                : "No worries! You can still send them some love:";
+
+            const linksHtml = eventData.registry_links.map(link => `
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="registry-link-btn">
+                    🎁 ${link.name}
+                </a>
+            `).join('');
+
+            return `
+                <div class="registry-links-section">
+                    <p class="registry-intro">${introText}</p>
+                    <div class="registry-links-list">
+                        ${linksHtml}
+                    </div>
+                </div>
+            `;
+        }
+
         // Show success state
         function showSuccess(attending, guestCount) {
             document.getElementById('rsvp-form-container').style.display = 'none';
@@ -1931,6 +2214,13 @@
                 const calBtn = document.getElementById('add-to-calendar');
                 calBtn.style.display = 'inline-flex';
                 calBtn.addEventListener('click', () => addToCalendar(eventData));
+            }
+
+            // Add registry links if available
+            const registryHtml = getRegistryLinksHTML(attending);
+            if (registryHtml) {
+                const successDetails = document.querySelector('#success-state .evite-success-details');
+                successDetails.insertAdjacentHTML('afterend', registryHtml);
             }
 
             document.getElementById('success-state').style.display = 'block';

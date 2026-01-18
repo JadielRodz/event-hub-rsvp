@@ -44,6 +44,40 @@ const Events = {
         return this.templates[templateId] || this.templates['shabby-chic'];
     },
 
+    // Upload custom invitation image to Supabase Storage
+    async uploadCustomImage(file) {
+        try {
+            const user = await Auth.getCurrentUser();
+            if (!user) throw new Error('User not authenticated');
+
+            // Generate unique filename
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+            // Upload to Supabase Storage
+            const { data, error } = await supabaseClient
+                .storage
+                .from('invitation-images')
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
+
+            if (error) throw error;
+
+            // Get public URL
+            const { data: urlData } = supabaseClient
+                .storage
+                .from('invitation-images')
+                .getPublicUrl(fileName);
+
+            return { success: true, url: urlData.publicUrl };
+        } catch (error) {
+            console.error('Upload image error:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
     // Create a new event
     async create(eventData) {
         try {
@@ -53,16 +87,28 @@ const Events = {
             // Convert datetime-local value to ISO string with timezone
             const eventDate = new Date(eventData.event_date).toISOString();
 
+            const insertData = {
+                user_id: user.id,
+                title: eventData.title,
+                description: eventData.description,
+                event_date: eventDate,
+                location: eventData.location,
+                template: eventData.template || 'shabby-chic'
+            };
+
+            // Add custom image URL if provided
+            if (eventData.custom_image_url) {
+                insertData.custom_image_url = eventData.custom_image_url;
+            }
+
+            // Add registry links if provided
+            if (eventData.registry_links) {
+                insertData.registry_links = eventData.registry_links;
+            }
+
             const { data, error } = await supabaseClient
                 .from('events')
-                .insert({
-                    user_id: user.id,
-                    title: eventData.title,
-                    description: eventData.description,
-                    event_date: eventDate,
-                    location: eventData.location,
-                    template: eventData.template || 'shabby-chic'
-                })
+                .insert(insertData)
                 .select()
                 .single();
 

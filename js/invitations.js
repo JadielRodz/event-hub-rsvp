@@ -74,7 +74,10 @@ const Invitations = {
                         title,
                         description,
                         event_date,
-                        location
+                        location,
+                        template,
+                        custom_image_url,
+                        registry_links
                     )
                 `)
                 .eq('token', token)

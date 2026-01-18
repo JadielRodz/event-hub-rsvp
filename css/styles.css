@@ -1377,3 +1377,345 @@ p {
         font-size: 1.75rem;
     }
 }
+
+/* =====================================================
+   Custom Image Upload Styles
+   ===================================================== */
+
+.invitation-type-toggle {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-lg);
+    background: var(--background);
+    padding: 4px;
+    border-radius: var(--radius-md);
+}
+
+.toggle-btn {
+    flex: 1;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+    transition: var(--transition);
+}
+
+.toggle-btn:hover {
+    color: var(--text-primary);
+}
+
+.toggle-btn.active {
+    background: var(--surface);
+    color: var(--primary-color);
+    box-shadow: var(--shadow-sm);
+}
+
+.image-upload-area {
+    border: 2px dashed var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--background);
+    min-height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.image-upload-area:hover {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+}
+
+.image-upload-area.drag-over {
+    border-color: var(--primary-color);
+    background: var(--primary-light);
+    border-style: solid;
+}
+
+.upload-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.upload-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+}
+
+.upload-placeholder p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+}
+
+.upload-hint {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.image-preview {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
+.image-preview img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+}
+
+.remove-image-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--error);
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.remove-image-btn:hover {
+    background: #dc2626;
+    transform: scale(1.1);
+}
+
+/* Custom image RSVP page styles */
+.custom-invitation-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: var(--spacing-lg);
+}
+
+.custom-invitation-image {
+    width: 100%;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: var(--spacing-xl);
+}
+
+.custom-rsvp-form {
+    background: var(--surface);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-md);
+}
+
+.custom-rsvp-form h2 {
+    text-align: center;
+    margin-bottom: var(--spacing-lg);
+    color: var(--text-primary);
+}
+
+.custom-event-details {
+    background: var(--background);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    text-align: center;
+}
+
+.custom-event-details h3 {
+    font-size: 1.5rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.custom-event-details p {
+    color: var(--text-secondary);
+    margin: var(--spacing-xs) 0;
+}
+
+@media (max-width: 480px) {
+    .invitation-type-toggle {
+        flex-direction: column;
+    }
+
+    .image-upload-area {
+        padding: var(--spacing-lg);
+        min-height: 150px;
+    }
+
+    .upload-icon {
+        font-size: 2rem;
+    }
+}
+
+/* =====================================================
+   Registry Link Input Styles (Create Event Page)
+   ===================================================== */
+.registry-link-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+}
+
+.registry-link-inputs {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--spacing-sm);
+}
+
+.registry-link-inputs input {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.registry-link-inputs input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.remove-registry-btn {
+    padding: 10px !important;
+    min-width: 38px;
+}
+
+.btn-danger {
+    background: var(--error);
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+/* =====================================================
+   Registry Link Display Styles (RSVP Success Page)
+   ===================================================== */
+.registry-links-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: rgba(248, 232, 232, 0.3);
+    border-radius: 10px;
+    text-align: center;
+}
+
+.registry-intro {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: #806868;
+    margin-bottom: 15px;
+}
+
+.registry-links-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.registry-link-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 18px;
+    background: #fffcfa;
+    border: 1px solid #e8d4d4;
+    border-radius: 8px;
+    color: #806868;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.registry-link-btn:hover {
+    background: #b87878;
+    border-color: #b87878;
+    color: white;
+}
+
+/* Template-specific registry link styling */
+.template-modern-dark .registry-links-section {
+    background: rgba(212, 175, 55, 0.05);
+}
+
+.template-modern-dark .registry-intro {
+    color: #888899;
+}
+
+.template-modern-dark .registry-link-btn {
+    background: rgba(30, 30, 50, 0.5);
+    border-color: rgba(212, 175, 55, 0.2);
+    color: #ccccdd;
+}
+
+.template-modern-dark .registry-link-btn:hover {
+    background: #d4af37;
+    border-color: #d4af37;
+    color: #0f0f1a;
+}
+
+.template-garden-party .registry-links-section {
+    background: rgba(200, 232, 200, 0.2);
+}
+
+.template-garden-party .registry-intro {
+    color: #4a6848;
+}
+
+.template-garden-party .registry-link-btn {
+    background: #fdfef9;
+    border-color: #d4e4d0;
+    color: #4a6848;
+}
+
+.template-garden-party .registry-link-btn:hover {
+    background: #5a8c5a;
+    border-color: #5a8c5a;
+    color: white;
+}
+
+.template-classic-formal .registry-links-section {
+    background: #f8f8f8;
+}
+
+.template-classic-formal .registry-intro {
+    color: #666666;
+    font-style: normal;
+}
+
+.template-classic-formal .registry-link-btn {
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
+    color: #2c2c2c;
+    font-style: normal;
+}
+
+.template-classic-formal .registry-link-btn:hover {
+    background: #2c2c2c;
+    border-color: #2c2c2c;
+    color: white;
+}
+
+@media (max-width: 600px) {
+    .registry-link-inputs {
+        grid-template-columns: 1fr;
+    }
+}
