@@ -740,6 +740,48 @@
             .evite-oval-frame {
                 padding: 20px 15px;
             }
+
+            /* Fix Yes/No buttons on mobile */
+            .evite-response-options {
+                gap: 8px;
+            }
+
+            .evite-response-card {
+                padding: 14px 8px;
+            }
+
+            .evite-response-emoji {
+                font-size: 1.3rem;
+                margin-bottom: 4px;
+            }
+
+            .evite-response-text {
+                font-size: 0.75rem;
+                line-height: 1.2;
+            }
+        }
+
+        @media (max-width: 360px) {
+            /* Extra small screens - stack Yes/No vertically */
+            .evite-response-options {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .evite-response-card {
+                flex-direction: row;
+                justify-content: center;
+                gap: 10px;
+                padding: 14px 16px;
+            }
+
+            .evite-response-emoji {
+                margin-bottom: 0;
+            }
+
+            .evite-response-text {
+                font-size: 0.85rem;
+            }
         }
 
         /* =====================================================
