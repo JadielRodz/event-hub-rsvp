@@ -1631,8 +1631,9 @@
                             <div class="evite-form-hint">For event updates</div>
                         </div>
                         <div class="evite-form-group">
-                            <label for="email">Email (optional)</label>
-                            <input type="email" id="email" name="email" placeholder="your@email.com">
+                            <label for="email">Email <span class="required">*</span></label>
+                            <input type="email" id="email" name="email" required placeholder="your@email.com">
+                            <div class="evite-form-hint">For invitation details</div>
                         </div>
                     </div>
 
@@ -1911,8 +1912,8 @@
                                     <input type="tel" id="custom-phone" name="phone" required placeholder="(555) 123-4567" value="${invitation?.phone || ''}">
                                 </div>
                                 <div class="form-group">
-                                    <label for="custom-email">Email (optional)</label>
-                                    <input type="email" id="custom-email" name="email" placeholder="your@email.com" value="${invitation?.email || ''}">
+                                    <label for="custom-email">Email <span class="required">*</span></label>
+                                    <input type="email" id="custom-email" name="email" required placeholder="your@email.com" value="${invitation?.email || ''}">
                                 </div>
                             </div>
 
