@@ -180,7 +180,7 @@ serve(async (req) => {
         "Authorization": `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: Deno.env.get("FROM_EMAIL") || "Synathrozo <invitations@yourdomain.com>",
+        from: Deno.env.get("FROM_EMAIL") || "Synathrozo <invitations@synathrozo.com>",
         to: [body.to],
         subject: `You're Invited: ${body.eventTitle}`,
         html: emailHTML,
