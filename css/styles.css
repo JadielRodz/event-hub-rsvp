@@ -1543,6 +1543,81 @@ p {
     margin: var(--spacing-xs) 0;
 }
 
+/* Custom RSVP Yes/No buttons */
+.custom-attending-options {
+    display: flex;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.custom-attending-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 12px 16px;
+    border: 2px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--surface);
+    transition: all 0.2s ease;
+    flex: 1;
+    justify-content: center;
+}
+
+.custom-attending-option:hover {
+    border-color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.custom-attending-option:has(input:checked) {
+    border-color: var(--primary-color);
+    background: rgba(99, 102, 241, 0.1);
+}
+
+.custom-attending-option.yes-option:has(input:checked) {
+    border-color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+}
+
+.custom-attending-option.no-option:has(input:checked) {
+    border-color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.custom-attending-option input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary-color);
+}
+
+.custom-attending-option span {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+    .custom-attending-options {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .custom-attending-option {
+        padding: 14px 16px;
+    }
+
+    .custom-attending-option span {
+        font-size: 0.95rem;
+    }
+
+    .custom-rsvp-form {
+        padding: var(--spacing-lg);
+    }
+
+    .custom-invitation-container {
+        padding: var(--spacing-md);
+    }
+}
+
 @media (max-width: 480px) {
     .invitation-type-toggle {
         flex-direction: column;

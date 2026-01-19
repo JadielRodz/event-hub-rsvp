@@ -84,8 +84,11 @@ const Events = {
             const user = await Auth.getCurrentUser();
             if (!user) throw new Error('User not authenticated');
 
-            // Convert datetime-local value to ISO string with timezone
-            const eventDate = new Date(eventData.event_date).toISOString();
+            // Store the datetime as-is from the input (preserves user's intended local time)
+            // The datetime-local input gives us format: "2024-06-15T14:00"
+            // We append the local timezone offset to make it timezone-aware
+            const localDate = new Date(eventData.event_date);
+            const eventDate = this.toLocalISOString(localDate);
 
             const insertData = {
                 user_id: user.id,
@@ -163,8 +166,9 @@ const Events = {
             const user = await Auth.getCurrentUser();
             if (!user) throw new Error('User not authenticated');
 
-            // Convert datetime-local value to ISO string with timezone
-            const eventDate = new Date(eventData.event_date).toISOString();
+            // Store the datetime preserving user's intended local time
+            const localDate = new Date(eventData.event_date);
+            const eventDate = this.toLocalISOString(localDate);
 
             const updateFields = {
                 title: eventData.title,
@@ -238,6 +242,25 @@ const Events = {
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
         return `${year}-${month}-${day}T${hours}:${minutes}`;
+    },
+
+    // Convert date to ISO string preserving local timezone
+    // This ensures the date/time displayed matches what the user selected
+    toLocalISOString(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+
+        // Get timezone offset in hours and minutes
+        const tzOffset = -date.getTimezoneOffset();
+        const tzSign = tzOffset >= 0 ? '+' : '-';
+        const tzHours = String(Math.floor(Math.abs(tzOffset) / 60)).padStart(2, '0');
+        const tzMins = String(Math.abs(tzOffset) % 60).padStart(2, '0');
+
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}${tzSign}${tzHours}:${tzMins}`;
     }
 };
 

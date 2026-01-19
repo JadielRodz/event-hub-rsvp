@@ -7,6 +7,10 @@ const Email = {
         try {
             const rsvpLink = Invitations.getRSVPLink(invitation.token);
 
+            // Format the date in the browser (which has correct timezone)
+            // This ensures the email shows the same time the creator intended
+            const formattedEventDate = Events.formatDate(event.event_date);
+
             const response = await fetch(`${SUPABASE_URL}/functions/v1/send-invitation-email`, {
                 method: 'POST',
                 headers: {
@@ -18,6 +22,7 @@ const Email = {
                     guestName: invitation.name || null,
                     eventTitle: event.title,
                     eventDate: event.event_date,
+                    formattedEventDate: formattedEventDate, // Pre-formatted date string
                     eventLocation: event.location || null,
                     eventDescription: event.description || null,
                     rsvpLink: rsvpLink,

@@ -15,6 +15,7 @@ interface InvitationEmailRequest {
   guestName?: string;
   eventTitle: string;
   eventDate: string;
+  formattedEventDate?: string; // Pre-formatted date string from browser
   eventLocation?: string;
   eventDescription?: string;
   rsvpLink: string;
@@ -24,14 +25,26 @@ interface InvitationEmailRequest {
 }
 
 function generateEmailHTML(data: InvitationEmailRequest): string {
-  const formattedDate = new Date(data.eventDate).toLocaleDateString('en-US', {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
+  // Use the pre-formatted date from the browser if available
+  // This ensures the email shows the exact time the creator intended
+  let formattedDate: string;
+
+  if (data.formattedEventDate) {
+    // Use the pre-formatted date string from the browser
+    formattedDate = data.formattedEventDate;
+  } else {
+    // Fallback: format on server (may have timezone issues)
+    const date = new Date(data.eventDate);
+    formattedDate = date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+  }
 
   // Template-specific colors
   const templateStyles: Record<string, { bg: string; accent: string; text: string; button: string }> = {
@@ -187,7 +200,7 @@ serve(async (req) => {
       }),
     });
 
-    const data = await res.json();
+    const data: { id?: string; message?: string } = await res.json();
 
     if (!res.ok) {
       throw new Error(data.message || "Failed to send email");
@@ -197,8 +210,9 @@ serve(async (req) => {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
-  } catch (error) {
-    return new Response(JSON.stringify({ success: false, error: error.message }), {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    return new Response(JSON.stringify({ success: false, error: errorMessage }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 400,
     });

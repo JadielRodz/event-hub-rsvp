@@ -1888,12 +1888,12 @@
 
                             <div class="form-group">
                                 <label>Will you be attending?</label>
-                                <div style="display: flex; gap: 12px; margin-top: 8px;">
-                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                <div class="custom-attending-options">
+                                    <label class="custom-attending-option yes-option">
                                         <input type="radio" name="custom-attending" value="yes" required>
                                         <span>Yes, I'll be there!</span>
                                     </label>
-                                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                                    <label class="custom-attending-option no-option">
                                         <input type="radio" name="custom-attending" value="no" required>
                                         <span>Sorry, can't make it</span>
                                     </label>
@@ -2365,7 +2365,7 @@
           document.querySelector(".evite-details").innerHTML = `
             <div class="evite-details-line">
               <span class="evite-details-label">When:</span>
-              ${new Date(invite.events.event_date).toLocaleString()}
+              ${Events.formatDate(invite.events.event_date)}
             </div>
             <div class="evite-details-line">
               <span class="evite-details-label">Where:</span>
