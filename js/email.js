@@ -30,7 +30,8 @@ const Email = {
                     templateId: event.template || 'shabby-chic',
                     customImageUrl: event.custom_image_url || null,
                     isConfirmation: isConfirmation,
-                    registryLinks: event.registry_links || null
+                    registryLinks: event.registry_links || null,
+                    specialMessage: event.special_message || null
                 })
             });
 

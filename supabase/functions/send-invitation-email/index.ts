@@ -29,6 +29,7 @@ interface InvitationEmailRequest {
   hostName?: string;
   isConfirmation?: boolean; // If true, this is a post-RSVP confirmation email
   registryLinks?: RegistryLink[]; // Registry links to show in confirmation emails
+  specialMessage?: string; // Special activities/schedule to highlight in confirmation emails
 }
 
 function generateEmailHTML(data: InvitationEmailRequest): string {
@@ -137,6 +138,18 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
               <p style="margin: 0 0 24px; font-size: 15px; color: ${style.text}; text-align: center; line-height: 1.7; font-style: italic;">
                 "${data.eventDescription}"
               </p>
+              ` : ''}
+
+              ${data.specialMessage ? `
+              <!-- Special Activities / Schedule -->
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: ${isDark ? 'rgba(212,175,55,0.1)' : 'rgba(99,102,241,0.08)'}; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid ${style.accent};">
+                <tr>
+                  <td style="padding: 16px 20px;">
+                    <p style="margin: 0 0 8px; font-size: 13px; color: ${style.accent}; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">✨ Special Activities</p>
+                    <p style="margin: 0; font-size: 15px; color: ${style.text}; line-height: 1.8; white-space: pre-line;">${data.specialMessage}</p>
+                  </td>
+                </tr>
+              </table>
               ` : ''}
 
               <!-- RSVP Button or Registry Links -->

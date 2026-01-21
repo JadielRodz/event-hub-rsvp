@@ -109,6 +109,11 @@ const Events = {
                 insertData.registry_links = eventData.registry_links;
             }
 
+            // Add special message if provided
+            if (eventData.special_message) {
+                insertData.special_message = eventData.special_message;
+            }
+
             const { data, error } = await supabaseClient
                 .from('events')
                 .insert(insertData)
@@ -181,6 +186,11 @@ const Events = {
             // Only include template if provided
             if (eventData.template) {
                 updateFields.template = eventData.template;
+            }
+
+            // Include special_message (can be null to clear it)
+            if ('special_message' in eventData) {
+                updateFields.special_message = eventData.special_message;
             }
 
             const { data, error } = await supabaseClient

@@ -130,6 +130,20 @@
                         <input type="hidden" id="invitation-type" name="invitation-type" value="template">
                     </div>
 
+                    <!-- Special Message / Event Schedule -->
+                    <div class="form-group">
+                        <label for="special-message">Special Activities & Schedule (optional)</label>
+                        <p class="form-hint" style="margin-bottom: 8px; color: var(--text-muted);">Let guests know about special activities, games, or the event schedule. This will be highlighted in confirmation emails.</p>
+                        <textarea
+                            id="special-message"
+                            name="special-message"
+                            rows="4"
+                            placeholder="Example:&#10;🎮 Diaper Raffle - Bring a pack of diapers for a chance to win!&#10;🎁 Gift Opening at 3:00 PM&#10;🍰 Cake Cutting at 4:00 PM"
+                            maxlength="1000"
+                        ></textarea>
+                        <span class="char-count"><span id="special-msg-count">0</span>/1000</span>
+                    </div>
+
                     <!-- Gift Registry Links -->
                     <div class="form-group">
                         <label>Gift Registry / Wishlist Links (optional)</label>
@@ -364,13 +378,20 @@
             document.getElementById('selected-template').value = templateId;
         }
 
-        // Character counter for description
+        // Character counter for description and special message
         function setupCharCounter() {
             const descInput = document.getElementById('description');
             const countEl = document.getElementById('desc-count');
 
             descInput.addEventListener('input', () => {
                 countEl.textContent = descInput.value.length;
+            });
+
+            const specialMsgInput = document.getElementById('special-message');
+            const specialMsgCountEl = document.getElementById('special-msg-count');
+
+            specialMsgInput.addEventListener('input', () => {
+                specialMsgCountEl.textContent = specialMsgInput.value.length;
             });
         }
 
@@ -425,6 +446,9 @@
             // Get registry links
             const registryLinks = getRegistryLinks();
 
+            // Get special message
+            const specialMessage = document.getElementById('special-message').value.trim();
+
             // Create event
             const result = await Events.create({
                 title,
@@ -433,7 +457,8 @@
                 location,
                 template: invitationType === 'custom' ? 'custom' : template,
                 custom_image_url: customImageUrl,
-                registry_links: registryLinks.length > 0 ? registryLinks : null
+                registry_links: registryLinks.length > 0 ? registryLinks : null,
+                special_message: specialMessage || null
             });
 
             if (result.success) {
