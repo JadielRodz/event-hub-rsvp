@@ -10,6 +10,11 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+interface RegistryLink {
+  name: string;
+  url: string;
+}
+
 interface InvitationEmailRequest {
   to: string;
   guestName?: string;
@@ -22,6 +27,8 @@ interface InvitationEmailRequest {
   templateId: string;
   customImageUrl?: string;
   hostName?: string;
+  isConfirmation?: boolean; // If true, this is a post-RSVP confirmation email
+  registryLinks?: RegistryLink[]; // Registry links to show in confirmation emails
 }
 
 function generateEmailHTML(data: InvitationEmailRequest): string {
@@ -82,7 +89,7 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
           <!-- Header -->
           <tr>
             <td style="padding: 30px 30px 20px; text-align: center; border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'};">
-              <p style="margin: 0 0 8px; font-size: 14px; color: ${style.accent}; letter-spacing: 2px; text-transform: uppercase;">You're Invited</p>
+              <p style="margin: 0 0 8px; font-size: 14px; color: ${style.accent}; letter-spacing: 2px; text-transform: uppercase;">${data.isConfirmation ? "You're Attending!" : "You're Invited"}</p>
               <h1 style="margin: 0; font-size: 32px; font-weight: normal; color: ${style.accent}; font-family: 'Georgia', serif;">${data.eventTitle}</h1>
             </td>
           </tr>
@@ -106,7 +113,9 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
               ` : ''}
 
               <p style="margin: 0 0 20px; font-size: 16px; color: ${style.text}; text-align: center; line-height: 1.6;">
-                ${data.hostName ? `${data.hostName} has` : 'You have been'} invited you to celebrate this special occasion!
+                ${data.isConfirmation
+                  ? "Thank you for your RSVP! We're excited to celebrate with you."
+                  : `${data.hostName ? `${data.hostName} has` : 'You have been'} invited you to celebrate this special occasion!`}
               </p>
 
               <!-- Date & Location Box -->
@@ -130,7 +139,27 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
               </p>
               ` : ''}
 
-              <!-- RSVP Button -->
+              <!-- RSVP Button or Registry Links -->
+              ${data.isConfirmation && data.registryLinks && data.registryLinks.length > 0 ? `
+              <p style="margin: 0 0 12px; font-size: 14px; color: ${style.text}; text-align: center; font-style: italic;">
+                The hosts have shared their gift registry:
+              </p>
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td align="center">
+                    ${data.registryLinks.map(link => `
+                      <a href="${link.url}" style="display: inline-block; padding: 12px 24px; background-color: ${style.button}; color: ${isDark ? '#1a1a2e' : '#ffffff'}; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500; margin: 4px;">
+                        🎁 ${link.name}
+                      </a>
+                    `).join('')}
+                  </td>
+                </tr>
+              </table>
+              ` : data.isConfirmation ? `
+              <p style="margin: 0; font-size: 14px; color: ${isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)'}; text-align: center;">
+                We look forward to seeing you there!
+              </p>
+              ` : `
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="center">
@@ -144,6 +173,7 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
               <p style="margin: 20px 0 0; font-size: 13px; color: ${isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.4)'}; text-align: center;">
                 Click the button above to let us know if you can make it!
               </p>
+              `}
             </td>
           </tr>
 
@@ -195,7 +225,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: Deno.env.get("FROM_EMAIL") || "Synathrozo <invitations@synathrozo.com>",
         to: [body.to],
-        subject: `You're Invited: ${body.eventTitle}`,
+        subject: body.isConfirmation ? `RSVP Confirmed: ${body.eventTitle}` : `You're Invited: ${body.eventTitle}`,
         html: emailHTML,
       }),
     });

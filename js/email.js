@@ -3,7 +3,8 @@
 
 const Email = {
     // Send invitation email to a guest
-    async sendInvitation(invitation, event) {
+    // Set isConfirmation: true to send as a post-RSVP confirmation with registry links
+    async sendInvitation(invitation, event, { isConfirmation = false } = {}) {
         try {
             const rsvpLink = Invitations.getRSVPLink(invitation.token);
 
@@ -27,7 +28,9 @@ const Email = {
                     eventDescription: event.description || null,
                     rsvpLink: rsvpLink,
                     templateId: event.template || 'shabby-chic',
-                    customImageUrl: event.custom_image_url || null
+                    customImageUrl: event.custom_image_url || null,
+                    isConfirmation: isConfirmation,
+                    registryLinks: event.registry_links || null
                 })
             });
 

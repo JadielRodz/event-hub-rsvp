@@ -361,7 +361,7 @@
             btn.innerHTML = '⏳';
             btn.disabled = true;
 
-            const result = await Email.sendInvitation(invitation, currentEvent);
+            const result = await Email.sendInvitation(invitation, currentEvent, { isConfirmation: true});
 
             if (result.success) {
                 showToast('Email sent!');
