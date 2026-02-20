@@ -193,6 +193,11 @@ const Events = {
                 updateFields.special_message = eventData.special_message;
             }
 
+            // Include registry_links (can be null to clear all links)
+            if ('registry_links' in eventData) {
+                updateFields.registry_links = eventData.registry_links;
+            }
+
             const { data, error } = await supabaseClient
                 .from('events')
                 .update(updateFields)

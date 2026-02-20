@@ -173,6 +173,16 @@
                             ></textarea>
                         </div>
 
+                        <!-- Gift Registry Links -->
+                        <div class="form-group">
+                            <label>Gift Registry / Wishlist Links (optional)</label>
+                            <p class="form-hint" style="margin-bottom: 12px; color: var(--text-muted);">Add links to your gift registries. These will be shown to guests after they RSVP.</p>
+                            <div id="edit-registry-links-container"></div>
+                            <button type="button" class="btn btn-outline btn-sm" style="margin-top: 8px;" onclick="addEditRegistryLink()">
+                                + Add Registry Link
+                            </button>
+                        </div>
+
                         <div class="form-actions">
                             <button type="button" id="cancel-edit-btn" class="btn btn-outline">Cancel</button>
                             <button type="submit" id="save-btn" class="btn btn-primary">Save Changes</button>
@@ -205,6 +215,38 @@
     <script>
         let currentEvent = null;
         let eventId = null;
+        let editRegistryLinkCount = 0;
+
+        function addEditRegistryLink(name = '', url = '') {
+            const container = document.getElementById('edit-registry-links-container');
+            const linkId = editRegistryLinkCount++;
+            const linkDiv = document.createElement('div');
+            linkDiv.className = 'registry-link-row';
+            linkDiv.id = `edit-registry-link-${linkId}`;
+            linkDiv.innerHTML = `
+                <div class="registry-link-inputs">
+                    <input type="text" class="registry-name" placeholder="Registry name (e.g., Amazon, Target)" value="${Utils.escapeHtml(name)}" maxlength="50">
+                    <input type="url" class="registry-url" placeholder="https://..." value="${Utils.escapeHtml(url)}">
+                </div>
+                <button type="button" class="btn btn-sm btn-danger" onclick="removeEditRegistryLink(${linkId})">✕</button>
+            `;
+            container.appendChild(linkDiv);
+        }
+
+        function removeEditRegistryLink(linkId) {
+            const el = document.getElementById(`edit-registry-link-${linkId}`);
+            if (el) el.remove();
+        }
+
+        function getEditRegistryLinks() {
+            const links = [];
+            document.querySelectorAll('#edit-registry-links-container .registry-link-row').forEach(row => {
+                const name = row.querySelector('.registry-name').value.trim();
+                const url = row.querySelector('.registry-url').value.trim();
+                if (name && url) links.push({ name, url });
+            });
+            return links;
+        }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', async () => {
@@ -346,6 +388,13 @@
             document.getElementById('edit-date').value = Events.formatDateForInput(currentEvent.event_date);
             document.getElementById('edit-location').value = currentEvent.location || '';
             document.getElementById('edit-special-message').value = currentEvent.special_message || '';
+
+            // Populate registry links
+            const container = document.getElementById('edit-registry-links-container');
+            container.innerHTML = '';
+            editRegistryLinkCount = 0;
+            const existingLinks = currentEvent.registry_links || [];
+            existingLinks.forEach(link => addEditRegistryLink(link.name, link.url));
         }
 
         // Hide edit form
@@ -380,13 +429,15 @@
             Utils.showLoading(saveBtn, 'Saving...');
 
             const specialMessage = document.getElementById('edit-special-message').value.trim();
+            const registryLinks = getEditRegistryLinks();
 
             const result = await Events.update(eventId, {
                 title,
                 description,
                 event_date: eventDate,
                 location,
-                special_message: specialMessage || null
+                special_message: specialMessage || null,
+                registry_links: registryLinks.length > 0 ? registryLinks : null
             });
 
             if (result.success) {
