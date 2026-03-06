@@ -700,6 +700,7 @@ h1, h2, h3, h4, h5, h6 {
     opacity: 0;
     transition: opacity 0.3s;
     animation: gradientSpin 4s linear infinite paused;
+    pointer-events: none;
 }
 
 .event-card:hover::before {

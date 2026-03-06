@@ -356,6 +356,7 @@
     opacity: 0;
     transition: opacity 0.3s;
     animation: gradientSpin 4s linear infinite paused;
+    pointer-events: none;
 }
 
 .feature:hover::before {

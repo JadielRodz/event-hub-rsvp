@@ -247,7 +247,7 @@
             inset: 0;
             border-radius: 0.75rem;
             padding: 1px;
-            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899, #38bdf8, #6366f1);
+            background: linear-gradient(135deg, #fafafa, #fbbf24, #f59e0b, #d97706, #fafafa);
             background-size: 400% 400%;
             -webkit-mask:
                 linear-gradient(#fff 0 0) content-box,
@@ -257,6 +257,7 @@
             opacity: 0;
             transition: opacity 0.3s;
             animation: gradientSpin 4s linear infinite paused;
+            pointer-events: none;
         }
 
         .event-card:hover::before {
@@ -276,10 +277,11 @@
             position: absolute;
             top: 0; right: 0;
             width: 150px; height: 150px;
-            background: radial-gradient(circle at top right, rgba(99,102,241,0.1), transparent 70%);
+            background: radial-gradient(circle at top right, rgba(245,158,11,0.1), transparent 70%);
             border-radius: 50%;
             opacity: 0;
             transition: opacity 0.3s;
+            pointer-events: none;
         }
 
         .event-card:hover {
