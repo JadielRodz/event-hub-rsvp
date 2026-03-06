@@ -1621,13 +1621,13 @@
                     <!-- Guest Details -->
                     <div class="evite-form-group">
                         <label for="name">Your Name</label>
-                        <input type="text" id="name" name="name" required placeholder="Enter your full name">
+                        <input type="text" id="name" name="name" required placeholder="Enter your full name" maxlength="100">
                     </div>
 
                     <div class="evite-form-row">
                         <div class="evite-form-group">
                             <label for="phone">Phone Number</label>
-                            <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567">
+                            <input type="tel" id="phone" name="phone" required placeholder="(555) 123-4567" maxlength="20">
                             <div class="evite-form-hint">For event updates</div>
                         </div>
                         <div class="evite-form-group">
@@ -1699,6 +1699,18 @@
         let invitation = null;
         let eventData = null;
         let token = null;
+
+        // Rate limiting for walk-in RSVPs (no token) — 1 submission per event per hour
+        function canSubmitRSVP(eventId) {
+            const key = `rsvp_submitted_${eventId}`;
+            const last = localStorage.getItem(key);
+            if (!last) return true;
+            return Date.now() - parseInt(last) > 60 * 60 * 1000; // 1 hour
+        }
+
+        function recordRSVPSubmission(eventId) {
+            localStorage.setItem(`rsvp_submitted_${eventId}`, Date.now().toString());
+        }
 
         // Initialize page
         document.addEventListener('DOMContentLoaded', async () => {
@@ -1871,16 +1883,24 @@
                 hour12: true
             });
 
+            const safeImageUrl = /^https?:\/\//i.test(eventData.custom_image_url) ? Utils.escapeHtml(eventData.custom_image_url) : '';
+            const safeTitle = Utils.escapeHtml(eventData.title || '');
+            const safeLocation = Utils.escapeHtml(eventData.location || 'Location to be announced');
+            const safeDescription = eventData.description ? Utils.escapeHtml(eventData.description) : '';
+            const safeName = Utils.escapeHtml(invitation?.name || '');
+            const safePhone = Utils.escapeHtml(invitation?.phone || '');
+            const safeEmail = Utils.escapeHtml(invitation?.email || '');
+
             container.innerHTML = `
                 <div class="custom-invitation-container">
-                    <img src="${eventData.custom_image_url}" alt="${eventData.title}" class="custom-invitation-image">
+                    ${safeImageUrl ? `<img src="${safeImageUrl}" alt="${safeTitle}" class="custom-invitation-image">` : ''}
 
                     <div class="custom-rsvp-form">
                         <div class="custom-event-details">
-                            <h3>${eventData.title}</h3>
+                            <h3>${safeTitle}</h3>
                             <p><strong>${dateStr}</strong> at ${timeStr}</p>
-                            <p>${eventData.location || 'Location to be announced'}</p>
-                            ${eventData.description ? `<p style="margin-top: 12px; font-style: italic;">${eventData.description}</p>` : ''}
+                            <p>${safeLocation}</p>
+                            ${safeDescription ? `<p style="margin-top: 12px; font-style: italic;">${safeDescription}</p>` : ''}
                         </div>
 
                         <h2>RSVP</h2>
@@ -1903,17 +1923,17 @@
 
                             <div class="form-group">
                                 <label for="custom-name">Your Name <span class="required">*</span></label>
-                                <input type="text" id="custom-name" name="name" required placeholder="Enter your full name" value="${invitation?.name || ''}">
+                                <input type="text" id="custom-name" name="name" required placeholder="Enter your full name" maxlength="100" value="${safeName}">
                             </div>
 
                             <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
                                 <div class="form-group">
                                     <label for="custom-phone">Phone Number <span class="required">*</span></label>
-                                    <input type="tel" id="custom-phone" name="phone" required placeholder="(555) 123-4567" value="${invitation?.phone || ''}">
+                                    <input type="tel" id="custom-phone" name="phone" required placeholder="(555) 123-4567" maxlength="20" value="${safePhone}">
                                 </div>
                                 <div class="form-group">
                                     <label for="custom-email">Email <span class="required">*</span></label>
-                                    <input type="email" id="custom-email" name="email" required placeholder="your@email.com" value="${invitation?.email || ''}">
+                                    <input type="email" id="custom-email" name="email" required placeholder="your@email.com" maxlength="254" value="${safeEmail}">
                                 </div>
                             </div>
 
@@ -1980,7 +2000,7 @@
             const name = document.getElementById('custom-name').value.trim();
             const phone = document.getElementById('custom-phone').value.trim();
             const email = document.getElementById('custom-email').value.trim();
-            const guestCount = attending ? parseInt(document.getElementById('custom-guest-count').value) : 0;
+            const guestCount = attending ? Math.min(Math.max(parseInt(document.getElementById('custom-guest-count').value) || 1, 1), 20) : 0;
             const message = document.getElementById('custom-rsvp-message').value.trim();
             const messageEl = document.getElementById('custom-message');
             const submitBtn = document.getElementById('custom-submit-btn');
@@ -2004,6 +2024,12 @@
 
             if (email && !Utils.isValidEmail(email)) {
                 showFormMessage(messageEl, 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            // Rate limit walk-in RSVPs
+            if (!token && !canSubmitRSVP(eventData.id)) {
+                showFormMessage(messageEl, 'You have already submitted a response for this event. Please try again later.', 'error');
                 return;
             }
 
@@ -2040,6 +2066,8 @@
                 result = createResult.error
                     ? { success: false, error: createResult.error.message }
                     : { success: true, data: createResult.data };
+
+                if (result.success) recordRSVPSubmission(eventData.id);
             }
 
             submitBtn.disabled = false;
@@ -2063,11 +2091,14 @@
                     ? "The hosts have shared their gift registry:"
                     : "No worries! You can still send them some love:";
 
-                const linksHtml = eventData.registry_links.map(link => `
-                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 10px 18px; background: #f0f0f0; border-radius: 6px; color: #333; text-decoration: none; margin: 4px; transition: background 0.2s;">
-                        🎁 ${link.name}
+                const linksHtml = eventData.registry_links.map(link => {
+                    const safeUrl = /^https?:\/\//i.test(link.url) ? Utils.escapeHtml(link.url) : '#';
+                    const safeLinkName = Utils.escapeHtml(link.name);
+                    return `
+                    <a href="${safeUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; padding: 10px 18px; background: #f0f0f0; border-radius: 6px; color: #333; text-decoration: none; margin: 4px; transition: background 0.2s;">
+                        🎁 ${safeLinkName}
                     </a>
-                `).join('');
+                `;}).join('');
 
                 registryHtml = `
                     <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #eee;">
@@ -2089,8 +2120,8 @@
                             : "Thank you for letting us know. You'll be missed!"}
                     </p>
                     <div style="background: #f9fafb; padding: 16px; border-radius: 8px; text-align: left;">
-                        <p><strong>Event:</strong> ${eventData.title}</p>
-                        <p><strong>Date:</strong> ${Events.formatDate(eventData.event_date)}</p>
+                        <p><strong>Event:</strong> ${Utils.escapeHtml(eventData.title || '')}</p>
+                        <p><strong>Date:</strong> ${Utils.escapeHtml(Events.formatDate(eventData.event_date))}</p>
                         <p><strong>Your Response:</strong> ${attending ? 'Attending' : 'Not Attending'}</p>
                     </div>
                     ${registryHtml}
@@ -2135,7 +2166,7 @@
             const name = document.getElementById('name').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const email = document.getElementById('email').value.trim();
-            const guestCount = attending ? parseInt(document.getElementById('guest-count').value) : 0;
+            const guestCount = attending ? Math.min(Math.max(parseInt(document.getElementById('guest-count').value) || 1, 1), 20) : 0;
             const message = document.getElementById('rsvp-message').value.trim();
             const messageEl = document.getElementById('message');
             const submitBtn = document.getElementById('submit-btn');
@@ -2159,6 +2190,12 @@
 
             if (email && !Utils.isValidEmail(email)) {
                 showFormMessage(messageEl, 'Please enter a valid email address', 'error');
+                return;
+            }
+
+            // Rate limit walk-in RSVPs
+            if (!token && !canSubmitRSVP(eventData.id)) {
+                showFormMessage(messageEl, 'You have already submitted a response for this event. Please try again later.', 'error');
                 return;
             }
 
@@ -2195,6 +2232,8 @@
                 result = createResult.error
                     ? { success: false, error: createResult.error.message }
                     : { success: true, data: createResult.data };
+
+                if (result.success) recordRSVPSubmission(eventData.id);
             }
 
             submitBtn.disabled = false;

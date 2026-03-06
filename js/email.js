@@ -12,11 +12,14 @@ const Email = {
             // This ensures the email shows the same time the creator intended
             const formattedEventDate = Events.formatDate(event.event_date);
 
+            const { data: { session } } = await window.supabaseClient.auth.getSession();
+            if (!session?.access_token) throw new Error('Not authenticated');
+
             const response = await fetch(`${SUPABASE_URL}/functions/v1/send-invitation-email`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    'Authorization': `Bearer ${session.access_token}`
                 },
                 body: JSON.stringify({
                     to: invitation.email,
@@ -104,10 +107,7 @@ const Email = {
     async checkConfiguration() {
         try {
             const response = await fetch(`${SUPABASE_URL}/functions/v1/send-invitation-email`, {
-                method: 'OPTIONS',
-                headers: {
-                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
-                }
+                method: 'OPTIONS'
             });
             return response.ok;
         } catch {

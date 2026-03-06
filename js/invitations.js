@@ -116,14 +116,25 @@ const Invitations = {
     // Respond to invitation (public - RSVP)
     async respond(token, responseData) {
         try {
+            // Sanitize phone — digits only, must be 10-15 digits
+            const phoneDigits = (responseData.phone || '').replace(/\D/g, '');
+            if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+                return { success: false, error: 'Please enter a valid phone number' };
+            }
+
+            // Clamp guest_count to a sane range
+            const guestCount = responseData.attending
+                ? Math.min(Math.max(parseInt(responseData.guest_count) || 1, 1), 20)
+                : 0;
+
             const { data, error } = await window.supabaseClient
                 .from('invitations')
                 .update({
                     name: responseData.name,
-                    phone: responseData.phone,
+                    phone: phoneDigits,
                     email: responseData.email || null,
                     status: responseData.attending ? 'accepted' : 'declined',
-                    guest_count: responseData.attending ? (responseData.guest_count || 1) : 0,
+                    guest_count: guestCount,
                     message: responseData.message || null,
                     responded_at: new Date().toISOString()
                 })

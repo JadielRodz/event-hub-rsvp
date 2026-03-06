@@ -19,6 +19,14 @@ Thumbs.db
 .env.*.local
 supabase/.env.local
 
+# Private keys and certificates — NEVER commit these
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+
 # Logs
 logs
 *.log

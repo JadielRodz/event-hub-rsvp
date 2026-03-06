@@ -1,14 +1,22 @@
 // Supabase Edge Function to send invitation emails via Resend
-// Deploy: supabase functions deploy send-invitation-email --no-verify-jwt
+// Deploy: supabase functions deploy send-invitation-email
+// NOTE: Do NOT use --no-verify-jwt — JWT verification must be enabled so only
+// authenticated users can call this function.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+const ALLOWED_ORIGINS = ["https://synathrozo.com", "https://www.synathrozo.com"];
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  const allowedOrigin = origin && ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
+  return {
+    "Access-Control-Allow-Origin": allowedOrigin,
+    "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    "Vary": "Origin",
+  };
+}
 
 interface RegistryLink {
   name: string;
@@ -30,6 +38,15 @@ interface InvitationEmailRequest {
   isConfirmation?: boolean; // If true, this is a post-RSVP confirmation email
   registryLinks?: RegistryLink[]; // Registry links to show in confirmation emails
   specialMessage?: string; // Special activities/schedule to highlight in confirmation emails
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;");
 }
 
 function generateEmailHTML(data: InvitationEmailRequest): string {
@@ -91,7 +108,7 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
           <tr>
             <td style="padding: 30px 30px 20px; text-align: center; border-bottom: 1px solid ${isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)'};">
               <p style="margin: 0 0 8px; font-size: 14px; color: ${style.accent}; letter-spacing: 2px; text-transform: uppercase;">${data.isConfirmation ? "You're Attending!" : "You're Invited"}</p>
-              <h1 style="margin: 0; font-size: 32px; font-weight: normal; color: ${style.accent}; font-family: 'Georgia', serif;">${data.eventTitle}</h1>
+              <h1 style="margin: 0; font-size: 32px; font-weight: normal; color: ${style.accent}; font-family: 'Georgia', serif;">${escapeHtml(data.eventTitle)}</h1>
             </td>
           </tr>
 
@@ -109,7 +126,7 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
             <td style="padding: 24px 30px;">
               ${data.guestName ? `
               <p style="margin: 0 0 20px; font-size: 18px; color: ${style.text}; text-align: center; font-style: italic;">
-                Dear ${data.guestName},
+                Dear ${escapeHtml(data.guestName)},
               </p>
               ` : ''}
 
@@ -128,7 +145,7 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
 
                     ${data.eventLocation ? `
                     <p style="margin: 0 0 4px; font-size: 12px; color: ${style.accent}; text-transform: uppercase; letter-spacing: 1px;">Where</p>
-                    <p style="margin: 0; font-size: 16px; color: ${style.text};">${data.eventLocation}</p>
+                    <p style="margin: 0; font-size: 16px; color: ${style.text};">${escapeHtml(data.eventLocation)}</p>
                     ` : ''}
                   </td>
                 </tr>
@@ -136,7 +153,7 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
 
               ${data.eventDescription ? `
               <p style="margin: 0 0 24px; font-size: 15px; color: ${style.text}; text-align: center; line-height: 1.7; font-style: italic;">
-                "${data.eventDescription}"
+                "${escapeHtml(data.eventDescription)}"
               </p>
               ` : ''}
 
@@ -146,7 +163,7 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
                 <tr>
                   <td style="padding: 16px 20px;">
                     <p style="margin: 0 0 8px; font-size: 13px; color: ${style.accent}; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">✨ Special Activities</p>
-                    <p style="margin: 0; font-size: 15px; color: ${style.text}; line-height: 1.8; white-space: pre-line;">${data.specialMessage}</p>
+                    <p style="margin: 0; font-size: 15px; color: ${style.text}; line-height: 1.8; white-space: pre-line;">${escapeHtml(data.specialMessage)}</p>
                   </td>
                 </tr>
               </table>
@@ -160,11 +177,13 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
               <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
                 <tr>
                   <td align="center">
-                    ${data.registryLinks.map(link => `
-                      <a href="${link.url}" style="display: inline-block; padding: 12px 24px; background-color: ${style.button}; color: ${isDark ? '#1a1a2e' : '#ffffff'}; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500; margin: 4px;">
-                        🎁 ${link.name}
+                    ${data.registryLinks.map(link => {
+                      const safeUrl = /^https?:\/\//i.test(link.url) ? link.url : '#';
+                      return `
+                      <a href="${escapeHtml(safeUrl)}" style="display: inline-block; padding: 12px 24px; background-color: ${style.button}; color: ${isDark ? '#1a1a2e' : '#ffffff'}; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500; margin: 4px;">
+                        🎁 ${escapeHtml(link.name)}
                       </a>
-                    `).join('')}
+                    `;}).join('')}
                   </td>
                 </tr>
               </table>
@@ -208,7 +227,12 @@ function generateEmailHTML(data: InvitationEmailRequest): string {
   `;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -226,6 +250,30 @@ serve(async (req) => {
       throw new Error("Missing required fields: to, eventTitle, eventDate, rsvpLink");
     }
 
+    // Validate email format
+    if (!EMAIL_REGEX.test(body.to)) {
+      throw new Error("Invalid recipient email address");
+    }
+
+    // Validate rsvpLink is a safe https URL
+    if (!/^https?:\/\/.+/i.test(body.rsvpLink)) {
+      throw new Error("Invalid rsvpLink");
+    }
+
+    // Enforce field length limits to block oversized payloads
+    if (body.eventTitle.length > 100) throw new Error("eventTitle too long");
+    if (body.eventLocation && body.eventLocation.length > 200) throw new Error("eventLocation too long");
+    if (body.eventDescription && body.eventDescription.length > 1000) throw new Error("eventDescription too long");
+    if (body.guestName && body.guestName.length > 100) throw new Error("guestName too long");
+    if (body.specialMessage && body.specialMessage.length > 1000) throw new Error("specialMessage too long");
+    if (body.registryLinks && body.registryLinks.length > 10) throw new Error("Too many registry links");
+    if (body.registryLinks) {
+      for (const link of body.registryLinks) {
+        if (!/^https?:\/\/.+/i.test(link.url)) throw new Error("Invalid registry link URL");
+        if (link.name.length > 50) throw new Error("Registry link name too long");
+      }
+    }
+
     const emailHTML = generateEmailHTML(body);
 
     // Send via Resend
@@ -238,7 +286,7 @@ serve(async (req) => {
       body: JSON.stringify({
         from: Deno.env.get("FROM_EMAIL") || "Synathrozo <invitations@synathrozo.com>",
         to: [body.to],
-        subject: body.isConfirmation ? `RSVP Confirmed: ${body.eventTitle}` : `You're Invited: ${body.eventTitle}`,
+        subject: body.isConfirmation ? `RSVP Confirmed: ${escapeHtml(body.eventTitle)}` : `You're Invited: ${escapeHtml(body.eventTitle)}`,
         html: emailHTML,
       }),
     });

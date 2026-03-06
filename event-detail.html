@@ -240,11 +240,20 @@
 
         function getEditRegistryLinks() {
             const links = [];
-            document.querySelectorAll('#edit-registry-links-container .registry-link-row').forEach(row => {
+            const rows = document.querySelectorAll('#edit-registry-links-container .registry-link-row');
+            for (const row of rows) {
                 const name = row.querySelector('.registry-name').value.trim();
                 const url = row.querySelector('.registry-url').value.trim();
-                if (name && url) links.push({ name, url });
-            });
+                if (!name && !url) continue;
+                if (name && url) {
+                    if (!/^https?:\/\/.+/i.test(url)) {
+                        return null;
+                    }
+                    links.push({ name, url });
+                } else if (name || url) {
+                    return null;
+                }
+            }
             return links;
         }
 
@@ -430,6 +439,12 @@
 
             const specialMessage = document.getElementById('edit-special-message').value.trim();
             const registryLinks = getEditRegistryLinks();
+
+            if (registryLinks === null) {
+                Utils.hideLoading(saveBtn);
+                Utils.showMessage(messageEl, 'Registry links must have both a name and a valid URL starting with https://', 'error');
+                return;
+            }
 
             const result = await Events.update(eventId, {
                 title,

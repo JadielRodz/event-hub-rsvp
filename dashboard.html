@@ -4,9 +4,490 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Synathrozo - Dashboard</title>
-    <link rel="stylesheet" href="css/styles.css">
-    <!-- Supabase JS Library -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Base ── */
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            background: #09090b;
+            color: #fafafa;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Magic UI: dot-grid background ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background-image:
+                radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Magic UI: top radial glow ── */
+        body::after {
+            content: '';
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 900px;
+            height: 600px;
+            background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Navbar ── */
+        .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(9,9,11,0.85);
+            border-bottom: 1px solid #27272a;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1.5rem;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /* Magic UI: animated gradient logo */
+        .nav-logo {
+            font-size: 1.125rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            text-decoration: none;
+            background: linear-gradient(90deg, #e879f9, #6366f1, #38bdf8, #6366f1, #e879f9);
+            background-size: 300% 100%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: logoShimmer 5s linear infinite;
+        }
+
+        @keyframes logoShimmer {
+            0%   { background-position: 0% 50%; }
+            100% { background-position: 300% 50%; }
+        }
+
+        .nav-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .nav-link {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #71717a;
+            text-decoration: none;
+            padding: 0.4375rem 0.75rem;
+            border-radius: 0.375rem;
+            transition: color 0.15s, background 0.15s;
+        }
+
+        .nav-link:hover { color: #fafafa; background: #27272a; }
+        .nav-link.active { color: #fafafa; background: #27272a; }
+
+        /* ShadCN ghost button */
+        #logout-btn {
+            font-family: 'Inter', inherit;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #71717a;
+            background: transparent;
+            border: 1px solid #3f3f46;
+            border-radius: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            cursor: pointer;
+            transition: color 0.15s, background 0.15s, border-color 0.15s;
+            margin-left: 0.5rem;
+        }
+
+        #logout-btn:hover { color: #fafafa; background: #27272a; border-color: #52525b; }
+
+        /* hamburger */
+        .nav-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0.375rem;
+        }
+
+        .nav-toggle span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: #71717a;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        /* ── Layout ── */
+        .main-content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2.5rem 1.5rem 4rem;
+        }
+
+        /* ── Page header ── */
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 2.25rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #fafafa 30%, #71717a 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome-text {
+            font-size: 0.875rem;
+            color: #52525b;
+            margin-top: 0.25rem;
+        }
+
+        .welcome-text span { color: #a1a1aa; font-weight: 500; }
+
+        /* Magic UI: glow button */
+        .btn-create {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5625rem 1.25rem;
+            font-family: 'Inter', inherit;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #fafafa;
+            text-decoration: none;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+        }
+
+        .btn-create::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 0.5625rem;
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899);
+            z-index: -1;
+            filter: blur(10px);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .btn-create:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 0 24px rgba(99,102,241,0.5), 0 4px 16px rgba(0,0,0,0.4);
+        }
+
+        .btn-create:hover::after { opacity: 0.7; }
+
+        .btn-icon { font-size: 1rem; line-height: 1; }
+
+        /* ── Events grid ── */
+        .events-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.125rem;
+        }
+
+        /* ── Magic UI: shimmer-border card ── */
+        .event-card {
+            position: relative;
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 0.75rem;
+            padding: 1.375rem;
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            overflow: hidden;
+        }
+
+        /* animated gradient border on hover */
+        .event-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 0.75rem;
+            padding: 1px;
+            background: linear-gradient(135deg, #6366f1, #a855f7, #ec4899, #38bdf8, #6366f1);
+            background-size: 400% 400%;
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0;
+            transition: opacity 0.3s;
+            animation: gradientSpin 4s linear infinite paused;
+        }
+
+        .event-card:hover::before {
+            opacity: 1;
+            animation-play-state: running;
+        }
+
+        @keyframes gradientSpin {
+            0%   { background-position: 0% 50%; }
+            50%  { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* inner glow on hover */
+        .event-card::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0;
+            width: 150px; height: 150px;
+            background: radial-gradient(circle at top right, rgba(99,102,241,0.1), transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .event-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            border-color: transparent;
+        }
+
+        .event-card:hover::after { opacity: 1; }
+
+        .event-past { opacity: 0.55; }
+        .event-past:hover { opacity: 0.8; }
+
+        /* ShadCN badge */
+        .event-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.1875rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.6875rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            margin-bottom: 0.875rem;
+        }
+
+        .status-upcoming {
+            background: rgba(99,102,241,0.12);
+            color: #818cf8;
+            border: 1px solid rgba(99,102,241,0.25);
+        }
+
+        .status-past {
+            background: rgba(63,63,70,0.4);
+            color: #52525b;
+            border: 1px solid #3f3f46;
+        }
+
+        .event-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #f4f4f5;
+            letter-spacing: -0.015em;
+            line-height: 1.45;
+            margin-bottom: 0.75rem;
+        }
+
+        .event-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.3125rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .event-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.8125rem;
+            color: #52525b;
+        }
+
+        .detail-icon { font-size: 0.8125rem; width: 1rem; flex-shrink: 0; }
+
+        .event-description {
+            font-size: 0.8125rem;
+            color: #3f3f46;
+            line-height: 1.65;
+            margin-bottom: 1.25rem;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .event-actions { display: flex; gap: 0.5rem; }
+
+        /* ShadCN secondary/outline button */
+        .btn-card {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.875rem;
+            font-family: 'Inter', inherit;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #a1a1aa;
+            background: transparent;
+            border: 1px solid #3f3f46;
+            border-radius: 0.375rem;
+            text-decoration: none;
+            transition: color 0.15s, background 0.15s, border-color 0.15s;
+        }
+
+        .btn-card:hover { color: #fafafa; background: #27272a; border-color: #52525b; }
+
+        /* ── Magic UI: shimmer skeleton loading ── */
+        .skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.125rem;
+        }
+
+        .skeleton-card {
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 0.75rem;
+            padding: 1.375rem;
+        }
+
+        .skeleton-line {
+            border-radius: 0.25rem;
+            background: linear-gradient(
+                90deg,
+                #27272a 0%,
+                #3f3f46 40%,
+                #27272a 80%
+            );
+            background-size: 300% 100%;
+            animation: skeletonShimmer 1.6s ease-in-out infinite;
+        }
+
+        @keyframes skeletonShimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -100% 0; }
+        }
+
+        /* ── Empty state ── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        .empty-icon-box {
+            position: relative;
+            width: 72px;
+            height: 72px;
+            background: #18181b;
+            border: 1px solid #27272a;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 0 0 1px rgba(99,102,241,0.2), 0 0 40px rgba(99,102,241,0.06);
+        }
+
+        .empty-state h2 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #fafafa;
+            letter-spacing: -0.015em;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            font-size: 0.875rem;
+            color: #52525b;
+            max-width: 280px;
+            line-height: 1.6;
+            margin-bottom: 1.75rem;
+        }
+
+        /* ── Error message ── */
+        .message {
+            padding: 0.875rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .message.error {
+            background: rgba(239,68,68,0.1);
+            color: #f87171;
+            border: 1px solid rgba(239,68,68,0.2);
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .nav-toggle { display: flex; }
+
+            .nav-menu {
+                display: none;
+                position: absolute;
+                top: 60px;
+                left: 0; right: 0;
+                background: #09090b;
+                border-bottom: 1px solid #27272a;
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 0.75rem 1rem;
+                gap: 0.125rem;
+            }
+
+            .nav-menu.active { display: flex; }
+            .nav-link { width: 100%; }
+            #logout-btn { width: 100%; margin-left: 0; margin-top: 0.25rem; text-align: left; }
+
+            .page-header { flex-direction: column; }
+            .btn-create { width: 100%; justify-content: center; }
+
+            .main-content { padding: 1.75rem 1rem 3rem; }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -16,7 +497,7 @@
             <div class="nav-menu">
                 <a href="dashboard.html" class="nav-link active">My Events</a>
                 <a href="create-event.html" class="nav-link">Create Event</a>
-                <button id="logout-btn" class="btn btn-outline btn-sm">Logout</button>
+                <button id="logout-btn">Logout</button>
             </div>
             <button class="nav-toggle" id="nav-toggle" aria-label="Toggle navigation">
                 <span></span>
@@ -28,41 +509,68 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <div class="container">
-            <div class="page-header">
-                <div>
-                    <h1>My Events</h1>
-                    <p class="welcome-text">Welcome, <span id="user-name">User</span>!</p>
+        <!-- Page header -->
+        <div class="page-header">
+            <div>
+                <h1>My Events</h1>
+                <p class="welcome-text">Welcome back, <span id="user-name">—</span></p>
+            </div>
+            <a href="create-event.html" class="btn-create">
+                <span class="btn-icon">+</span> Create Event
+            </a>
+        </div>
+
+        <div id="message" class="message" style="display: none;"></div>
+
+        <!-- Skeleton loading -->
+        <div id="loading">
+            <div class="skeleton-grid">
+                <!-- 6 skeleton cards -->
+                <div class="skeleton-card">
+                    <div class="skeleton-line" style="height:18px;width:55%;margin-bottom:14px;"></div>
+                    <div class="skeleton-line" style="height:22px;width:80%;margin-bottom:12px;"></div>
+                    <div class="skeleton-line" style="height:14px;width:70%;margin-bottom:8px;"></div>
+                    <div class="skeleton-line" style="height:14px;width:55%;margin-bottom:20px;"></div>
+                    <div class="skeleton-line" style="height:13px;width:90%;margin-bottom:6px;"></div>
+                    <div class="skeleton-line" style="height:13px;width:75%;margin-bottom:24px;"></div>
+                    <div class="skeleton-line" style="height:32px;width:110px;border-radius:6px;"></div>
                 </div>
-                <a href="create-event.html" class="btn btn-primary">
-                    <span class="btn-icon">+</span> Create Event
-                </a>
-            </div>
-
-            <div id="message" class="message" style="display: none;"></div>
-
-            <!-- Loading State -->
-            <div id="loading" class="loading-container">
-                <div class="spinner-large"></div>
-                <p>Loading your events...</p>
-            </div>
-
-            <!-- Empty State -->
-            <div id="empty-state" class="empty-state" style="display: none;">
-                <div class="empty-icon">📅</div>
-                <h2>No Events Yet</h2>
-                <p>You haven't created any events. Start by creating your first event!</p>
-                <a href="create-event.html" class="btn btn-primary">Create Your First Event</a>
-            </div>
-
-            <!-- Events Grid -->
-            <div id="events-grid" class="events-grid" style="display: none;">
-                <!-- Events will be dynamically inserted here -->
+                <div class="skeleton-card">
+                    <div class="skeleton-line" style="height:18px;width:40%;margin-bottom:14px;"></div>
+                    <div class="skeleton-line" style="height:22px;width:90%;margin-bottom:12px;"></div>
+                    <div class="skeleton-line" style="height:14px;width:65%;margin-bottom:8px;"></div>
+                    <div class="skeleton-line" style="height:14px;width:50%;margin-bottom:20px;"></div>
+                    <div class="skeleton-line" style="height:13px;width:85%;margin-bottom:6px;"></div>
+                    <div class="skeleton-line" style="height:13px;width:60%;margin-bottom:24px;"></div>
+                    <div class="skeleton-line" style="height:32px;width:110px;border-radius:6px;"></div>
+                </div>
+                <div class="skeleton-card">
+                    <div class="skeleton-line" style="height:18px;width:60%;margin-bottom:14px;"></div>
+                    <div class="skeleton-line" style="height:22px;width:75%;margin-bottom:12px;"></div>
+                    <div class="skeleton-line" style="height:14px;width:80%;margin-bottom:8px;"></div>
+                    <div class="skeleton-line" style="height:14px;width:45%;margin-bottom:20px;"></div>
+                    <div class="skeleton-line" style="height:13px;width:95%;margin-bottom:6px;"></div>
+                    <div class="skeleton-line" style="height:13px;width:70%;margin-bottom:24px;"></div>
+                    <div class="skeleton-line" style="height:32px;width:110px;border-radius:6px;"></div>
+                </div>
             </div>
         </div>
+
+        <!-- Empty State -->
+        <div id="empty-state" class="empty-state" style="display: none;">
+            <div class="empty-icon-box">📅</div>
+            <h2>No events yet</h2>
+            <p>Create your first event and start sending beautiful invitations.</p>
+            <a href="create-event.html" class="btn-create">
+                <span class="btn-icon">+</span> Create Your First Event
+            </a>
+        </div>
+
+        <!-- Events Grid -->
+        <div id="events-grid" class="events-grid" style="display: none;"></div>
     </main>
 
-    <!-- Load scripts in order -->
+    <!-- Scripts -->
     <script src="js/config.js"></script>
     <script src="js/auth.js"></script>
     <script src="js/events.js"></script>
@@ -70,69 +578,62 @@
     <script>
         let currentUser = null;
 
-        // Initialize dashboard
         document.addEventListener('DOMContentLoaded', async () => {
-            // Check authentication
             currentUser = await Auth.requireAuth();
             if (!currentUser) return;
 
-            // Display user name
             const userName = currentUser.user_metadata?.full_name || currentUser.email;
             document.getElementById('user-name').textContent = userName;
 
-            // Load events
             await loadEvents();
-
-            // Setup mobile nav toggle
             setupMobileNav();
         });
 
-        // Load and display events
         async function loadEvents() {
-            const loadingEl = document.getElementById('loading');
-            const emptyStateEl = document.getElementById('empty-state');
-            const eventsGridEl = document.getElementById('events-grid');
-            const messageEl = document.getElementById('message');
+            const loadingEl   = document.getElementById('loading');
+            const emptyEl     = document.getElementById('empty-state');
+            const gridEl      = document.getElementById('events-grid');
+            const messageEl   = document.getElementById('message');
 
             try {
                 const result = await Events.getAll();
-
-                // Hide loading
                 loadingEl.style.display = 'none';
 
                 if (!result.success) {
-                    Utils.showMessage(messageEl, result.error || 'Failed to load events', 'error');
+                    messageEl.textContent = result.error || 'Failed to load events';
+                    messageEl.className = 'message error';
+                    messageEl.style.display = 'block';
                     return;
                 }
 
                 const events = result.data;
 
                 if (events.length === 0) {
-                    emptyStateEl.style.display = 'flex';
+                    emptyEl.style.display = 'flex';
                 } else {
-                    eventsGridEl.style.display = 'grid';
+                    gridEl.style.display = 'grid';
                     renderEvents(events);
                 }
-            } catch (error) {
+            } catch {
                 loadingEl.style.display = 'none';
-                Utils.showMessage(messageEl, 'An error occurred while loading events', 'error');
+                messageEl.textContent = 'An error occurred while loading events.';
+                messageEl.className = 'message error';
+                messageEl.style.display = 'block';
             }
         }
 
-        // Render events to the grid
         function renderEvents(events) {
-            const eventsGridEl = document.getElementById('events-grid');
-            eventsGridEl.innerHTML = events.map(event => createEventCard(event)).join('');
+            document.getElementById('events-grid').innerHTML =
+                events.map(createEventCard).join('');
         }
 
-        // Create event card HTML
         function createEventCard(event) {
-            const isPast = Utils.isPastDate(event.event_date);
+            const isPast      = Utils.isPastDate(event.event_date);
+            const statusText  = isPast ? 'Past' : Utils.getRelativeTime(event.event_date);
             const statusClass = isPast ? 'status-past' : 'status-upcoming';
-            const statusText = isPast ? 'Past' : Utils.getRelativeTime(event.event_date);
 
             return `
-                <div class="event-card ${isPast ? 'event-past' : ''}">
+                <div class="event-card${isPast ? ' event-past' : ''}">
                     <div class="event-status ${statusClass}">${statusText}</div>
                     <h3 class="event-title">${Utils.escapeHtml(event.title)}</h3>
                     <div class="event-details">
@@ -145,30 +646,24 @@
                             <span>${Utils.escapeHtml(event.location || 'No location specified')}</span>
                         </div>
                     </div>
-                    <p class="event-description">${Utils.escapeHtml(Utils.truncate(event.description || 'No description', 120))}</p>
+                    <p class="event-description">${Utils.escapeHtml(Utils.truncate(event.description || 'No description provided', 120))}</p>
                     <div class="event-actions">
-                        <a href="event-detail.html?id=${event.id}" class="btn btn-sm btn-outline">View Details</a>
+                        <a href="event-detail.html?id=${event.id}" class="btn-card">View Details →</a>
                     </div>
                 </div>
             `;
         }
 
-        // Handle logout
         document.getElementById('logout-btn').addEventListener('click', async () => {
             const result = await Auth.signOut();
-            if (result.success) {
-                window.location.href = 'index.html';
-            }
+            if (result.success) window.location.href = 'index.html';
         });
 
-        // Mobile navigation toggle
         function setupMobileNav() {
-            const navToggle = document.getElementById('nav-toggle');
-            const navMenu = document.querySelector('.nav-menu');
-
-            navToggle.addEventListener('click', () => {
-                navMenu.classList.toggle('active');
-                navToggle.classList.toggle('active');
+            const toggle = document.getElementById('nav-toggle');
+            const menu   = document.querySelector('.nav-menu');
+            toggle.addEventListener('click', () => {
+                menu.classList.toggle('active');
             });
         }
     </script>

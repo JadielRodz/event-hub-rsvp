@@ -328,16 +328,23 @@
             if (linkEl) linkEl.remove();
         }
 
-        // Get all registry links
+        // Get all registry links — returns null if any URL is invalid
         function getRegistryLinks() {
             const links = [];
-            document.querySelectorAll('.registry-link-row').forEach(row => {
+            const rows = document.querySelectorAll('.registry-link-row');
+            for (const row of rows) {
                 const name = row.querySelector('.registry-name').value.trim();
                 const url = row.querySelector('.registry-url').value.trim();
+                if (!name && !url) continue; // skip empty rows
                 if (name && url) {
+                    if (!/^https?:\/\/.+/i.test(url)) {
+                        return null; // signal invalid URL
+                    }
                     links.push({ name, url });
+                } else if (name || url) {
+                    return null; // one field filled but not the other
                 }
-            });
+            }
             return links;
         }
 
@@ -445,6 +452,10 @@
 
             // Get registry links
             const registryLinks = getRegistryLinks();
+            if (registryLinks === null) {
+                Utils.showMessage(messageEl, 'Registry links must have both a name and a valid URL starting with https://', 'error');
+                return;
+            }
 
             // Get special message
             const specialMessage = document.getElementById('special-message').value.trim();
