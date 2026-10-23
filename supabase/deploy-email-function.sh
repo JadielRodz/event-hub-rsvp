@@ -53,12 +53,14 @@ else
     exit 1
 fi
 
-# Deploy the function
+# Deploy the function. Leave JWT verification on. Do not pass --no-verify-jwt:
+# the public anon key is a valid JWT, and the function rejects anything that
+# is not a signed-in user.
 echo "📦 Deploying function..."
-supabase functions deploy send-invitation-email --no-verify-jwt
+supabase functions deploy send-invitation-email
 
 echo ""
-echo "✅ Done! Email function deployed."
+echo "✅ Done! Email function deployed with JWT verification enabled."
 echo ""
 echo "Test it by:"
 echo "1. Go to Manage Invitations for any event"

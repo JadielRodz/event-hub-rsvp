@@ -248,8 +248,11 @@ supabase link --project-ref your-project-ref
 supabase secrets set RESEND_API_KEY=re_your_api_key
 supabase secrets set FROM_EMAIL="Synathrozo <invitations@yourdomain.com>"
 
-# Deploy the function
-supabase functions deploy send-invitation-email --no-verify-jwt
+# Deploy the function with JWT verification left on.
+# Do not pass --no-verify-jwt. The function only sends mail for a signed-in
+# user who owns the event, and RSVP links must use https://synathrozo.com/
+# (www is allowed). A local dev origin such as http://localhost is rejected.
+supabase functions deploy send-invitation-email
 ```
 
 #### Step 3: Test
